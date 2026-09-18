@@ -38,7 +38,7 @@ const sampleBentoItems: BentoItem[] = [
 
 export function StaggeredGridSection() {
     return (
-        <div className="w-full bg-white dark:bg-black py-20">
+        <div className="w-full pt-10 pb-20">
             <StaggeredGrid 
                 images={sampleImages} 
                 bentoItems={sampleBentoItems} 

@@ -181,14 +181,14 @@ export function StaggeredGrid({
                 '--grid-item-translate': '0px',
             } as React.CSSProperties}
         >
-            <section className="grid place-items-center w-full relative mt-[10vh]">
+            <section className="grid place-items-center w-full relative mt-8">
                 <div ref={textRef} className="text font-alt uppercase flex content-center text-[clamp(3rem,14vw,10rem)] leading-[0.7] text-neutral-900 dark:text-white">
                     {splitText(centerText)}
                 </div>
             </section>
 
             <section className="grid place-items-center w-full relative">
-                <div ref={gridFullRef} className="grid--full relative w-full my-[10vh] h-auto aspect-[1.1] max-w-none p-4 grid gap-4 grid-cols-7 grid-rows-5">
+                <div ref={gridFullRef} className="grid--full relative w-full my-10 h-auto aspect-[1.1] max-w-none p-4 grid gap-4 grid-cols-7 grid-rows-5">
                     <div className="grid-overlay absolute inset-0 z-[15] pointer-events-none opacity-0 bg-white/80 dark:bg-black/80 rounded-lg transition-opacity duration-500" />
                     {mixedGridItems.map((item, i) => {
                         if (item === 'BENTO_GROUP') {
