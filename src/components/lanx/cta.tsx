@@ -1,4 +1,3 @@
-import dashboardMock from "@/assets/dashboard-mock.jpg";
 import { SectionBadge } from "./bits";
 import { GlowButton } from "./glow-button";
 
@@ -31,12 +30,12 @@ export function Cta() {
           style={{ boxShadow: "var(--shadow-glow)", perspective: "1200px" }}
         >
           <img
-            src={dashboardMock}
-            alt="Ansh Consultancy analytics dashboard showing traffic, revenue and team performance"
+            src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2940&auto=format&fit=crop"
+            alt="Ansh Consultancy team collaborating in a modern office"
             width={1600}
             height={912}
             loading="lazy"
-            className="w-full"
+            className="w-full h-auto object-cover opacity-80 transition-opacity hover:opacity-100"
           />
         </div>
         <div
