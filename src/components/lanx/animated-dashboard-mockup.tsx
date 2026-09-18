@@ -29,7 +29,7 @@ export function AnimatedDashboardMockup() {
         conversion: Number((prev.conversion + (Math.random() * 0.2 - 0.1)).toFixed(2)),
         bars: Array.from({ length: 24 }, () => Math.random() * 100),
       }));
-    }, 3500);
+    }, 1500);
     return () => clearInterval(interval);
   }, []);
 
