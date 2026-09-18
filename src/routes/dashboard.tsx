@@ -354,23 +354,22 @@ function DashboardLayout() {
         setLoading(false);
       } else if (event === "SIGNED_OUT") {
         navigate({ to: "/login" });
-      } else if (!hasAuthParams && event === "INITIAL_SESSION" && !session) {
-        navigate({ to: "/login" });
       }
     });
 
-    // Check existing session if not currently processing OAuth params
-    if (!hasAuthParams) {
-      supabase.auth.getUser().then(({ data: { user }, error }) => {
-        if (!mounted) return;
-        if (error || !user) {
+    // Always check for existing session on mount
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!mounted) return;
+      if (error || !session?.user) {
+        // If there are auth params, Supabase might still be exchanging the token, so give it a tiny bit of time before kicking them out.
+        if (!hasAuthParams) {
           navigate({ to: "/login" });
-        } else {
-          setUser(user);
-          setLoading(false);
         }
-      });
-    }
+      } else {
+        setUser(session.user);
+        setLoading(false);
+      }
+    });
 
     return () => {
       mounted = false;

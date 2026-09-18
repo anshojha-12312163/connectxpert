@@ -26,6 +26,7 @@ function LoginPage() {
   const [showPw, setShowPw]     = useState(false);
   const [status, setStatus]     = useState<"idle" | "loading" | "google" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const authInProgress = useRef(false);
   // Track whether the user has actively started an auth action in this session.
   // Without this flag, onAuthStateChange fires SIGNED_IN for any existing
   // cached session the moment the listener is attached, causing an immediate
