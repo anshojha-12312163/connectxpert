@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 
 import { Nav } from "@/components/lanx/nav";
 import { Hero } from "@/components/lanx/hero";
+import { StaggeredGridSection } from "@/components/lanx/staggered-grid-section";
 import { Features } from "@/components/lanx/features";
 import { WhyChooseUs } from "@/components/lanx/why-choose-us";
 import { Showcase } from "@/components/lanx/showcase";
@@ -61,6 +62,7 @@ function Index() {
       <Nav />
       <main>
         <Hero />
+        <StaggeredGridSection />
         <Features />
         <WhyChooseUs />
         <Showcase />
