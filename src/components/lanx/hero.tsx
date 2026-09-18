@@ -51,9 +51,6 @@ export function Hero() {
           itemClassName="px-10"
         />
       </div>
-      
-      {/* Smooth gradient transition into the next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent pointer-events-none" />
     </section>
   );
 }
