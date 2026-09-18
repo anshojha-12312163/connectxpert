@@ -30,26 +30,29 @@ function LoginPage() {
   // Without this flag, onAuthStateChange fires SIGNED_IN for any existing
   // cached session the moment the listener is attached, causing an immediate
   // redirect even before the user clicks anything.
-  const authInProgress = useRef(false);
-
   useEffect(() => {
+    // If the user already has an active session, send them straight to dashboard
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        navigate({ to: "/dashboard" });
+      }
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Only redirect when the user explicitly triggered auth (Google or form)
-      if (event === "SIGNED_IN" && session && authInProgress.current) {
+      if (event === "SIGNED_IN" && session) {
         navigate({ to: "/dashboard" });
       }
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   async function handleGoogle() {
-    authInProgress.current = true;
     setStatus("google");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/dashboard` },
     });
-    if (error) { authInProgress.current = false; setStatus("error"); setErrorMsg(error.message); }
+    if (error) { setStatus("error"); setErrorMsg(error.message); }
   }
 
   async function handleSubmit(e: React.FormEvent) {

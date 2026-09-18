@@ -63,7 +63,7 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProp
     setStatus("google");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/dashboard` },
     });
     if (error) { setStatus("error"); setErrorMsg(error.message); }
   }

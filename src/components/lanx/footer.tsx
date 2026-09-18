@@ -3,6 +3,7 @@ import { Facebook, Instagram, Twitter, Send } from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { Logo } from "./bits";
 import { supabase } from "@/lib/supabase";
+import { AnimatedFooter } from "./animated-footer";
 
 const HIDDEN_PATHS = ["/dashboard", "/login", "/signup"];
 
@@ -148,6 +149,17 @@ export function Footer() {
           </div>
         </div>
       </div>
+
+      {/* Animated ASCII footer reveal */}
+      <AnimatedFooter
+        headingLines={["ConnectXpert"]}
+        background="#0a0d1a"
+        charColor="#3b82f6"
+        hoverColor="#60a5fa"
+        hoverCharColor="#0a0d1a"
+        revealOnScroll
+        className="mt-8"
+      />
     </footer>
   );
 }

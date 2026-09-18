@@ -30,6 +30,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { Logo, Avatar } from "@/components/lanx/bits";
 import { cn } from "@/lib/utils";
+import { StaggerContainer, StaggerItem, FadeUp, TiltLogo } from "@/lib/motion";
 import type { User } from "@supabase/supabase-js";
 
 export const Route = createFileRoute("/dashboard")({
@@ -77,7 +78,7 @@ function Sidebar({
     >
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 border-b border-white/[0.06] px-5">
-        <Logo size="sm" />
+        <TiltLogo><Logo size="sm" /></TiltLogo>
         {onClose && (
           <button
             onClick={onClose}
@@ -94,73 +95,82 @@ function Sidebar({
         <p className="mb-1.5 px-3 text-[9px] font-semibold uppercase tracking-[0.15em] text-white/20">
           Main
         </p>
+        <StaggerContainer staggerMs={45}>
         {NAV_ITEMS.filter(i => i.section === "main").map(({ label, href, icon: Icon }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
-            <Link
-              key={label}
-              to={href}
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                active
-                  ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
-                  : "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
-              )}
-            >
-              <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
-              {label}
-            </Link>
+            <StaggerItem key={label}>
+              <Link
+                to={href}
+                onClick={onClose}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                  active
+                    ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
+                    : "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
+                )}
+              >
+                <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
+                {label}
+              </Link>
+            </StaggerItem>
           );
         })}
+        </StaggerContainer>
 
         {/* Expert Hub section */}
         <p className="mb-1.5 mt-4 px-3 text-[9px] font-semibold uppercase tracking-[0.15em] text-white/20">
           Expert Hub
         </p>
+        <StaggerContainer staggerMs={50}>
         {NAV_ITEMS.filter(i => i.section === "hub").map(({ label, href, icon: Icon }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
-            <Link
-              key={label}
-              to={href}
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                active
-                  ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
-                  : "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
-              )}
-            >
-              <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
-              {label}
-            </Link>
+            <StaggerItem key={label}>
+              <Link
+                to={href}
+                onClick={onClose}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                  active
+                    ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
+                    : "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
+                )}
+              >
+                <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
+                {label}
+              </Link>
+            </StaggerItem>
           );
         })}
+        </StaggerContainer>
 
         {/* System section */}
         <p className="mb-1.5 mt-4 px-3 text-[9px] font-semibold uppercase tracking-[0.15em] text-white/20">
           System
         </p>
+        <StaggerContainer staggerMs={55}>
         {NAV_ITEMS.filter(i => i.section === "system").map(({ label, href, icon: Icon }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
-            <Link
-              key={label}
-              to={href}
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                active
-                  ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
-                  : "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
-              )}
-            >
-              <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
-              {label}
-            </Link>
+            <StaggerItem key={label}>
+              <Link
+                to={href}
+                onClick={onClose}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                  active
+                    ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
+                    : "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
+                )}
+              >
+                <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
+                {label}
+              </Link>
+            </StaggerItem>
           );
         })}
+        </StaggerContainer>
       </nav>
 
       {/* Upgrade card */}
@@ -330,30 +340,43 @@ function DashboardLayout() {
   const location  = useLocation();
 
   useEffect(() => {
-    // getUser() hits the Supabase server to verify the token — unlike
-    // getSession() which only reads from localStorage and can return stale data.
-    supabase.auth.getUser().then(({ data: { user }, error }) => {
-      if (error || !user) {
-        navigate({ to: "/login" });
-      } else {
-        setUser(user);
-        setLoading(false);
-      }
-    });
+    let mounted = true;
+    const hasAuthParams =
+      typeof window !== "undefined" &&
+      (window.location.hash.includes("access_token") ||
+       window.location.search.includes("code=") ||
+       window.location.hash.includes("error="));
 
-    // Listen for sign-out or token expiry and immediately redirect
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT" || (!session && event !== "INITIAL_SESSION")) {
-        navigate({ to: "/login" });
-      }
+      if (!mounted) return;
       if (session?.user) {
         setUser(session.user);
         setLoading(false);
+      } else if (event === "SIGNED_OUT") {
+        navigate({ to: "/login" });
+      } else if (!hasAuthParams && event === "INITIAL_SESSION" && !session) {
+        navigate({ to: "/login" });
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    // Check existing session if not currently processing OAuth params
+    if (!hasAuthParams) {
+      supabase.auth.getUser().then(({ data: { user }, error }) => {
+        if (!mounted) return;
+        if (error || !user) {
+          navigate({ to: "/login" });
+        } else {
+          setUser(user);
+          setLoading(false);
+        }
+      });
+    }
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   // Close mobile menu on route change
   useEffect(() => setMobileOpen(false), [location.pathname]);
@@ -406,7 +429,9 @@ function DashboardLayout() {
               notifCount={5}
             />
             <main className="flex-1 overflow-y-auto p-5 lg:p-6">
-              <Outlet />
+              <FadeUp>
+                <Outlet />
+              </FadeUp>
             </main>
           </div>
         </>

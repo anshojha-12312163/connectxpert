@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/lib/supabase";
 
 import { Nav } from "@/components/lanx/nav";
 import { Hero } from "@/components/lanx/hero";
@@ -36,10 +38,24 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  // No auto-redirect here — the home page is always public.
-  // OAuth callbacks land on the origin URL; Supabase's detectSessionInUrl
-  // handles token exchange automatically. The login page's onAuthStateChange
-  // listener then fires SIGNED_IN and redirects to /dashboard.
+  const navigate = useNavigate();
+
+  // Handle OAuth callback: when Google redirects back to origin with a
+  // hash fragment (#access_token=…), Supabase's detectSessionInUrl exchanges
+  // it for a session. This listener catches the SIGNED_IN event and redirects.
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const hasAuthParams =
+        typeof window !== "undefined" &&
+        (window.location.hash.includes("access_token") ||
+         window.location.search.includes("code="));
+      if (event === "SIGNED_IN" && session && hasAuthParams) {
+        navigate({ to: "/dashboard" });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       <Nav />

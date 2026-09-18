@@ -13,6 +13,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { Avatar } from "@/components/lanx/bits";
 import { cn } from "@/lib/utils";
+import { AnimatedCard, StaggerContainer, StaggerItem } from "@/lib/motion";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardIndex,
@@ -96,7 +97,7 @@ function StatCard({ label, value, change, subtext, icon: Icon, iconBg }: {
 }) {
   const up = change >= 0;
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-white/[0.06] p-5" style={{ background: "#131824" }}>
+    <AnimatedCard className="flex flex-col gap-4 p-5" style={{ background: "#131824" }}>
       <div className="flex items-start justify-between">
         <p className="text-sm text-white/50">{label}</p>
         <span className={cn("flex size-9 items-center justify-center rounded-xl", iconBg)}>
@@ -114,7 +115,7 @@ function StatCard({ label, value, change, subtext, icon: Icon, iconBg }: {
           <span className="text-xs text-white/30">{subtext}</span>
         </div>
       </div>
-    </div>
+    </AnimatedCard>
   );
 }
 
@@ -292,17 +293,17 @@ function DashboardIndex() {
       </div>
 
       {/* KPI cards */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Demo Bookings"    value={bookings.toLocaleString()}    change={8.2}  subtext="all time"          icon={FolderOpen} iconBg="bg-blue-500/15 text-blue-400"    />
-        <StatCard label="Contact Messages" value={contacts.toLocaleString()}    change={5.1}  subtext="all time"          icon={Mail}       iconBg="bg-green-500/15 text-green-400"  />
-        <StatCard label="Newsletter Subs"  value={subscribers.toLocaleString()} change={12.3} subtext="total subscribers" icon={Users}      iconBg="bg-purple-500/15 text-purple-400" />
-        <StatCard label="Conversion Rate"  value={convRate}                     change={1.4}  subtext="visitors→bookings" icon={TrendingUp} iconBg="bg-yellow-500/15 text-yellow-400" />
-      </div>
+      <StaggerContainer className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" staggerMs={55}>
+        <StaggerItem><StatCard label="Demo Bookings"    value={bookings.toLocaleString()}    change={8.2}  subtext="all time"          icon={FolderOpen} iconBg="bg-blue-500/15 text-blue-400"    /></StaggerItem>
+        <StaggerItem><StatCard label="Contact Messages" value={contacts.toLocaleString()}    change={5.1}  subtext="all time"          icon={Mail}       iconBg="bg-green-500/15 text-green-400"  /></StaggerItem>
+        <StaggerItem><StatCard label="Newsletter Subs"  value={subscribers.toLocaleString()} change={12.3} subtext="total subscribers" icon={Users}      iconBg="bg-purple-500/15 text-purple-400" /></StaggerItem>
+        <StaggerItem><StatCard label="Conversion Rate"  value={convRate}                     change={1.4}  subtext="visitors→bookings" icon={TrendingUp} iconBg="bg-yellow-500/15 text-yellow-400" /></StaggerItem>
+      </StaggerContainer>
 
       {/* Charts row — visible after stage 2 */}
       {loadStage >= 2 ? (
         <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-        <div className="rounded-2xl border border-white/[0.06] p-5" style={{ background: "#131824" }}>
+        <AnimatedCard className="p-5" style={{ background: "#131824" }}>
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-semibold text-white">User Activity</h2>
@@ -389,10 +390,10 @@ function DashboardIndex() {
               Trend
             </div>
           </div>
-        </div>
+        </AnimatedCard>
 
         {/* Donut */}
-        <div className="rounded-2xl border border-white/[0.06] p-5" style={{ background: "#131824" }}>
+        <AnimatedCard className="p-5" style={{ background: "#131824" }}>
           <h2 className="text-sm font-semibold text-white mb-1">Traffic Sources</h2>
           <p className="text-xs text-white/35 mb-4">From analytics events</p>
           <div className="relative mx-auto w-fit">
@@ -421,7 +422,7 @@ function DashboardIndex() {
               );
             })}
           </div>
-        </div>
+        </AnimatedCard>
       </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
