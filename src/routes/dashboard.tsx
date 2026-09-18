@@ -369,9 +369,13 @@ function DashboardLayout() {
         if (!hasAuthParams || hasErrorInUrl) {
           navigate({ to: "/login" });
         } else {
-          // Fallback: if it's still stuck exchanging after 3 seconds, kick to login
-          setTimeout(() => {
-            if (mounted) navigate({ to: "/login" });
+          // Fallback: if it's still stuck exchanging after 3 seconds, double check session before kicking to login
+          setTimeout(async () => {
+            if (!mounted) return;
+            const { data } = await supabase.auth.getSession();
+            if (!data.session?.user) {
+              navigate({ to: "/login" });
+            }
           }, 3000);
         }
       } else {
