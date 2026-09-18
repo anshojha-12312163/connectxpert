@@ -360,10 +360,19 @@ function DashboardLayout() {
     // Always check for existing session on mount
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!mounted) return;
-      if (error || !session?.user) {
-        // If there are auth params, Supabase might still be exchanging the token, so give it a tiny bit of time before kicking them out.
-        if (!hasAuthParams) {
+      
+      const hasErrorInUrl = typeof window !== "undefined" && window.location.hash.includes("error=");
+      
+      if (error || !session?.user || hasErrorInUrl) {
+        // If there are valid auth params (and no error), give Supabase a moment to exchange the token.
+        // Otherwise, redirect to login.
+        if (!hasAuthParams || hasErrorInUrl) {
           navigate({ to: "/login" });
+        } else {
+          // Fallback: if it's still stuck exchanging after 3 seconds, kick to login
+          setTimeout(() => {
+            if (mounted) navigate({ to: "/login" });
+          }, 3000);
         }
       } else {
         setUser(session.user);
