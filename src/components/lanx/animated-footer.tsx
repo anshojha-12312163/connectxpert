@@ -471,21 +471,18 @@ export function AnimatedFooter({
       if (revealed) showAll();
       else maskAll();
     } else if (revealOnScroll) {
-      maskAll();
       let isRevealed = false;
+      maskAll();
       observer = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
             if (entry.isIntersecting && !isRevealed) {
               isRevealed = true;
               animateIn();
-            } else if (!entry.isIntersecting && isRevealed) {
-              isRevealed = false;
-              animateOut();
             }
           }
         },
-        { root: getScrollParent(root), threshold: 0.35 },
+        { threshold: 0.05 },
       );
       observer.observe(root);
     } else {

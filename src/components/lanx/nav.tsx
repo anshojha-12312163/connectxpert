@@ -73,7 +73,7 @@ export function Nav() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {authed ? (
               <Link
                 to="/dashboard"
@@ -84,13 +84,21 @@ export function Nav() {
                 Dashboard
               </Link>
             ) : (
-              <Link
-                to="/login"
-                className="hidden rounded-xl px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03] md:inline-flex"
-                style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-glow)" }}
-              >
-                Book a Demo
-              </Link>
+              <>
+                <Link
+                  to="/login"
+                  className="hidden text-sm font-medium text-foreground/75 transition-colors hover:text-foreground md:inline-flex"
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/login"
+                  className="hidden rounded-xl px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03] md:inline-flex"
+                  style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-glow)" }}
+                >
+                  Book a Demo
+                </Link>
+              </>
             )}
             <button
               type="button"
@@ -127,14 +135,23 @@ export function Nav() {
                   <LayoutDashboard className="size-4" /> Dashboard
                 </Link>
               ) : (
-                <Link
-                  to="/login"
-                  onClick={() => setOpen(false)}
-                  className="mt-2 w-full rounded-xl px-4 py-3 text-center text-sm font-semibold text-primary-foreground block"
-                  style={{ background: "var(--gradient-primary)" }}
-                >
-                  Book a Demo
-                </Link>
+                <div className="mt-3 flex flex-col gap-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setOpen(false)}
+                    className="w-full rounded-xl border border-border bg-surface-2/70 py-2.5 text-center text-sm font-medium text-foreground"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    to="/login"
+                    onClick={() => setOpen(false)}
+                    className="w-full rounded-xl py-2.5 text-center text-sm font-semibold text-primary-foreground"
+                    style={{ background: "var(--gradient-primary)" }}
+                  >
+                    Book a Demo
+                  </Link>
+                </div>
               )}
             </div>
           </div>

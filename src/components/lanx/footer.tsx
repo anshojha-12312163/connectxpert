@@ -150,14 +150,14 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Animated ASCII footer reveal */}
+      {/* Animated ASCII footer */}
       <AnimatedFooter
         headingLines={["ConnectXpert"]}
         background="#0a0d1a"
         charColor="#3b82f6"
         hoverColor="#60a5fa"
         hoverCharColor="#0a0d1a"
-        revealOnScroll
+        revealOnScroll={false}
         className="mt-8"
       />
     </footer>
