@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { AnimatedDashboardMockup } from "./animated-dashboard-mockup";
 
 export function HeroDashboard() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,19 +35,18 @@ export function HeroDashboard() {
         {/* Glowing backdrop behind the image */}
         <div className="absolute inset-0 -z-10 bg-primary/20 blur-[80px]" />
         
-        {/* The Dashboard Mockup Image */}
-        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/50 shadow-2xl">
+        {/* The Dashboard Mockup */}
+        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-[#0a0d1a] shadow-2xl">
           {/* Mac window controls mock */}
           <div className="absolute top-0 left-0 right-0 z-10 flex h-8 items-center gap-1.5 bg-white/5 px-4 backdrop-blur-md">
             <div className="size-2.5 rounded-full bg-red-500/80" />
             <div className="size-2.5 rounded-full bg-yellow-500/80" />
             <div className="size-2.5 rounded-full bg-green-500/80" />
           </div>
-          <img
-            src="/dashboard-mockup.png"
-            alt="Dashboard Interface"
-            className="w-full h-auto object-cover opacity-90 transition-opacity hover:opacity-100"
-          />
+          
+          <div className="pt-8 w-full h-[600px] overflow-hidden pointer-events-none">
+            <AnimatedDashboardMockup />
+          </div>
         </div>
       </motion.div>
     </div>
