@@ -1,6 +1,4 @@
-# LanderX Clone
 
-https://landerx.framer.website/#features clone this web all things clone
 
 This project was built with [Lovable](https://lovable.dev).
 
