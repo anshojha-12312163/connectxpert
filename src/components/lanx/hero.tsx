@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { JoinRow, Marquee } from "./bits";
+import { HeroDashboard } from "./hero-dashboard";
 
 const brands = ["Eooks", "Opal", "Dune", "Oasis", "Asterisk", "Nova", "Kairo"];
 
@@ -37,6 +38,8 @@ export function Hero() {
           </Link>
         </div>
       </div>
+
+      <HeroDashboard />
 
       <div className="relative mt-16">
         <p className="mb-4 text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/40">
