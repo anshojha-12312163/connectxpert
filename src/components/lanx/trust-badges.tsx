@@ -1,12 +1,11 @@
 import { ShieldCheck, Award, BadgeCheck, Globe, Lock, Zap } from "lucide-react";
 
 const badges = [
-  { icon: ShieldCheck, label: "ISO 27001 Compliant" },
-  { icon: Award, label: "Top Consulting Firm 2024" },
-  { icon: BadgeCheck, label: "Google Verified Partner" },
-  { icon: Globe, label: "Global Reach — 30+ Countries" },
-  { icon: Lock, label: "GDPR Compliant" },
-  { icon: Zap, label: "99.9% Client Satisfaction" },
+  { icon: ShieldCheck, label: "Encrypted 1-on-1 Video Sessions" },
+  { icon: BadgeCheck, label: "Independently Vetted Specialists" },
+  { icon: Lock, label: "Confidentiality & NDA Protection" },
+  { icon: Zap, label: "Zero Retainers or Long-Term Lock-In" },
+  { icon: Globe, label: "Global Timezone Coordination" },
 ];
 
 export function TrustBadges() {
@@ -14,7 +13,7 @@ export function TrustBadges() {
     <section className="relative border-t border-border py-12">
       <div className="mx-auto max-w-6xl px-5">
         <p className="mb-8 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-foreground/40">
-          Trusted, Certified &amp; Recognised
+          ConnectXpert Platform Guarantees &amp; Standards
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4">
           {badges.map(({ icon: Icon, label }) => (

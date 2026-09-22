@@ -22,7 +22,9 @@ function buildDailyBuckets(rows: { created_at: string }[], days = 30) {
   }
   for (const row of rows) {
     const day = row.created_at?.slice(0, 10);
-    if (day && day in buckets) buckets[day]++;
+    if (day && day in buckets) {
+      buckets[day] = (buckets[day] ?? 0) + 1;
+    }
   }
   return Object.entries(buckets).map(([date, count]) => ({
     date: date.slice(5), // MM-DD for display
@@ -292,7 +294,7 @@ function AnalyticsPage() {
           ) : (
             <div className="space-y-3">
               {topCtAs.map(({ name, count }, i) => {
-                const max = topCtAs[0].count;
+                const max = topCtAs[0]?.count || 1;
                 return (
                   <div key={name} className="flex items-center gap-3">
                     <span className="w-4 text-xs text-muted-foreground text-right shrink-0">{i + 1}</span>

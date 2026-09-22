@@ -27,8 +27,9 @@ function ClientsPage() {
 
   async function addClient() {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase.from("clients").insert({ ...newClient, user_id: user.id });
+    const demoId = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("cx_demo_user") || "{}").id : null;
+    const userId = user?.id || demoId || "demo-admin-id";
+    await supabase.from("clients").insert({ ...newClient, user_id: userId });
     setAdding(false);
     setNewClient({ project_name: "", status: "active", notes: "" });
     load();

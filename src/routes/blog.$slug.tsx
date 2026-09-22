@@ -11,7 +11,7 @@ export const Route = createFileRoute("/blog/$slug")({
     const post = posts.find((p) => p.slug === params.slug);
     return {
       meta: [
-        { title: post ? `${post.title} — Ansh Consultancy` : "Blog Post" },
+        { title: post ? `${post.title} — ConnectXpert` : "Blog Post — ConnectXpert" },
         { name: "description", content: post ? post.excerpt : "" },
       ],
     };

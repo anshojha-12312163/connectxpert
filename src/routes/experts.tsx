@@ -79,8 +79,17 @@ function ExpertsPage() {
         ? expRes.data as ExpertRow[]
         : SEED_EXPERTS.map((e, i) => ({ ...e, id: `seed-${i}` } as ExpertRow));
 
+      const DEFAULT_CATEGORIES: CategoryRow[] = [
+        { id: "business", name: "Business Strategy", icon: "TrendingUp", description: "Market entry, scale, and strategic planning", slug: "business" },
+        { id: "tech", name: "Technology & Cloud", icon: "Code", description: "Architecture, engineering, and DevOps", slug: "tech" },
+        { id: "marketing", name: "Growth Marketing", icon: "Zap", description: "SEO, paid performance, and conversion", slug: "marketing" },
+        { id: "legal", name: "Corporate Legal", icon: "Shield", description: "Contracts, fundraising, IP, and compliance", slug: "legal" },
+        { id: "design", name: "Product & UI/UX", icon: "Palette", description: "Design systems, user research, and branding", slug: "design" },
+        { id: "finance", name: "Finance & CFO", icon: "DollarSign", description: "Modeling, fundraising, and cap tables", slug: "finance" },
+      ];
+
       setExperts(expertData);
-      setCategories(catRes.data as CategoryRow[] ?? []);
+      setCategories((catRes.data && catRes.data.length > 0) ? (catRes.data as CategoryRow[]) : DEFAULT_CATEGORIES);
       setLoading(false);
     }
     load();
@@ -97,9 +106,11 @@ function ExpertsPage() {
       );
     }
     if (catFilter !== "all") list = list.filter(e => e.category_id === catFilter);
-    if (priceRange !== null) {
+    if (priceRange !== null && PRICE_RANGES[priceRange]) {
       const r = PRICE_RANGES[priceRange];
-      list = list.filter(e => e.hourly_rate >= r.min && e.hourly_rate <= r.max);
+      if (r) {
+        list = list.filter(e => e.hourly_rate >= r.min && e.hourly_rate <= r.max);
+      }
     }
     if (minRating > 0) list = list.filter(e => e.average_rating >= minRating);
     if (availOnly) {
@@ -133,7 +144,7 @@ function ExpertsPage() {
 
   const activeFilters = [
     catFilter !== "all" && categories.find(c => c.id === catFilter)?.name,
-    priceRange !== null && PRICE_RANGES[priceRange].label,
+    priceRange !== null && PRICE_RANGES[priceRange]?.label,
     minRating > 0 && `${minRating}+ stars`,
     availOnly && "Available now",
   ].filter(Boolean) as string[];

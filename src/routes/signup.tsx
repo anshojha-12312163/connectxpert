@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Logo } from "@/components/lanx/bits";
 
@@ -16,7 +16,7 @@ function GoogleIcon() {
 }
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: "Sign Up — Ansh Consultancy" }] }),
+  head: () => ({ meta: [{ title: "Sign Up — ConnectXpert" }] }),
   component: SignupPage,
 });
 
@@ -31,6 +31,7 @@ function SignupPage() {
 
   async function handleGoogleSignIn() {
     setStatus("google-loading");
+    setErrorMsg("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/dashboard` },
@@ -43,34 +44,73 @@ function SignupPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (password.length < 8) { setStatus("error"); setErrorMsg("Password must be at least 8 characters."); return; }
+    if (password.length < 8) {
+      setStatus("error");
+      setErrorMsg("Password must be at least 8 characters.");
+      return;
+    }
     setStatus("loading");
-    const { error } = await supabase.auth.signUp({
-      email, password,
+    setErrorMsg("");
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
       options: { data: { full_name: name } },
     });
-    if (error) { setStatus("error"); setErrorMsg(error.message); return; }
+
+    if (error) {
+      setStatus("error");
+      if (error.message.toLowerCase().includes("rate limit") || error.status === 429) {
+        setErrorMsg("Email send rate limit reached on Supabase. Please use 'Continue with Google' to sign up instantly.");
+      } else {
+        setErrorMsg(error.message);
+      }
+      return;
+    }
+
+    // If session was returned immediately (auto-confirm enabled), go straight to dashboard!
+    if (data?.session) {
+      navigate({ to: "/dashboard" });
+      return;
+    }
+
     setStatus("success");
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <div className="pointer-events-none fixed inset-0 hero-glow" aria-hidden />
       <div className="relative w-full max-w-md">
-        <div className="mb-8 flex justify-center">
-          <Link to="/"><Logo /></Link>
+        {/* Back link & Logo */}
+        <div className="mb-6 flex items-center justify-between">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="size-3.5" /> Back to Website
+          </Link>
+          <Link to="/">
+            <Logo />
+          </Link>
         </div>
-        <div className="rounded-3xl border border-border bg-surface-2/50 p-8">
+
+        <div className="rounded-3xl border border-border bg-surface-2/50 p-8 shadow-2xl backdrop-blur-xl">
           {status === "success" ? (
             <div className="text-center py-4">
               <h2 className="text-xl font-semibold mb-2">Check your email</h2>
-              <p className="text-sm text-muted-foreground">We've sent a confirmation link to <strong className="text-foreground">{email}</strong>. Click it to activate your account.</p>
-              <Link to="/login" className="mt-6 inline-block text-sm text-accent hover:text-foreground transition-colors">Back to Sign In</Link>
+              <p className="text-sm text-muted-foreground">
+                We've sent an activation link to <strong className="text-foreground">{email}</strong>. Click it to activate your account.
+              </p>
+              <div className="mt-6 flex flex-col gap-2">
+                <Link to="/login" className="inline-block text-sm text-accent hover:text-foreground transition-colors">
+                  Go to Sign In
+                </Link>
+                <Link to="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  Return to Home
+                </Link>
+              </div>
             </div>
           ) : (
             <>
               <h1 className="text-2xl font-semibold text-gradient mb-1">Create account</h1>
-              <p className="text-sm text-muted-foreground mb-8">Get access to your client portal.</p>
+              <p className="text-sm text-muted-foreground mb-6">Get access to your client portal & dashboard.</p>
 
               {/* Google sign-up */}
               <button
@@ -89,42 +129,71 @@ function SignupPage() {
 
               <div className="my-6 flex items-center gap-3">
                 <div className="h-px flex-1 bg-border" />
-                <span className="text-xs text-muted-foreground">or</span>
+                <span className="text-xs text-muted-foreground">or register with email</span>
                 <div className="h-px flex-1 bg-border" />
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                 {[
-                  { label: "Full Name", val: name, set: setName, type: "text" },
-                  { label: "Email", val: email, set: setEmail, type: "email" },
-                ].map(({ label, val, set, type }) => (
+                  { label: "Full Name", val: name, set: setName, type: "text", placeholder: "e.g. Ansh Sharma" },
+                  { label: "Email", val: email, set: setEmail, type: "email", placeholder: "you@company.com" },
+                ].map(({ label, val, set, type, placeholder }) => (
                   <div key={label} className="flex flex-col gap-1.5">
                     <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</label>
-                    <input type={type} value={val} onChange={(e) => set(e.target.value)} required
-                      className="rounded-xl border border-border bg-background/60 px-4 py-3 text-sm outline-none focus:border-primary/60 transition-colors" />
+                    <input
+                      type={type}
+                      value={val}
+                      onChange={(e) => set(e.target.value)}
+                      placeholder={placeholder}
+                      required
+                      className="rounded-xl border border-border bg-background/60 px-4 py-3 text-sm outline-none focus:border-primary/60 transition-colors"
+                    />
                   </div>
                 ))}
+
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Password</label>
+                  <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Password (min 8 characters)</label>
                   <div className="relative">
-                    <input type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required
-                      className="w-full rounded-xl border border-border bg-background/60 px-4 py-3 pr-11 text-sm outline-none focus:border-primary/60 transition-colors" />
-                    <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <input
+                      type={showPw ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      className="w-full rounded-xl border border-border bg-background/60 px-4 py-3 pr-11 text-sm outline-none focus:border-primary/60 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPw((v) => !v)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
                       {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
                   </div>
                 </div>
-                {status === "error" && <p className="text-sm text-destructive">{errorMsg}</p>}
-                <button type="submit" disabled={status === "loading" || status === "google-loading"}
+
+                {status === "error" && (
+                  <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+                    {errorMsg}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={status === "loading" || status === "google-loading"}
                   className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.01] disabled:opacity-60"
-                  style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-glow)" }}>
+                  style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-glow)" }}
+                >
                   {status === "loading" && <Loader2 className="size-4 animate-spin" />}
                   Create Account
                 </button>
               </form>
+
               <p className="mt-6 text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
-                <Link to="/login" className="text-accent hover:text-foreground transition-colors font-medium">Sign in</Link>
+                <Link to="/login" className="text-accent hover:text-foreground transition-colors font-medium">
+                  Sign in
+                </Link>
               </p>
             </>
           )}

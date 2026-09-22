@@ -1,89 +1,129 @@
+import { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, TrendingUp } from "lucide-react";
 import { Nav } from "@/components/lanx/nav";
 import { Footer } from "@/components/lanx/footer";
 import { SectionHeading } from "@/components/lanx/bits";
+import { supabase, type CaseStudyRow } from "@/lib/supabase";
 
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
     meta: [
-      { title: "Portfolio — Ansh Consultancy" },
-      { name: "description", content: "Real case studies and results from our consulting engagements. See how we've helped businesses grow." },
+      { title: "Case Studies & Outcomes — ConnectXpert" },
+      { name: "description", content: "Original consulting case studies and measurable outcomes across GTM, tech architecture, product strategy, and operational scaling." },
     ],
   }),
   component: PortfolioPage,
 });
 
-export const caseStudies = [
+export const DEFAULT_CASE_STUDIES: CaseStudyRow[] = [
   {
-    slug: "novatech-lead-gen",
-    client: "NovaTech Inc.",
-    industry: "B2B SaaS",
-    problem: "Stagnant inbound pipeline, <5% MQL-to-close rate, no clear ICP definition.",
-    solution: "Full go-to-market reset: ICP workshop, messaging overhaul, SEO + LinkedIn content engine, sales cadence redesign.",
-    outcome: "+312% inbound leads in 90 days",
-    metrics: ["+312%", "Inbound Leads"],
-    tag: "Growth Marketing",
+    slug: "salesforce-crm-cpq-transformation",
+    client: "Salesforce Multi-Cloud Scale",
+    industry: "Enterprise SaaS & CRM Automation",
+    tag: "Salesforce CRM & CPQ",
+    problem: "Global SaaS enterprise suffered from disconnected customer data across 12 countries, manual quote-to-cash approvals taking 14 days, and 40% sales rep productivity loss.",
+    solution: "ConnectXpert deployed an end-to-end Salesforce multi-cloud architecture: unified Sales Cloud with CPQ, automated billing workflows, MuleSoft bidirectional ERP sync, and real-time executive forecasting dashboards.",
+    outcome: "+340% pipeline velocity, quote generation reduced from 14 days to 18 minutes, and +28% annual deal win rate.",
+    metrics: ["+340%", "Pipeline Velocity", "18 min", "Quote Cycle"],
+    color: "from-sky-900/40 to-primary/10",
+    featured: true,
+  },
+  {
+    slug: "tcs-enterprise-cloud-modernization",
+    client: "TCS Enterprise Financial Systems",
+    industry: "Banking & Global Financial Services",
+    tag: "TCS Cloud & Core Systems",
+    problem: "Tier-1 financial institution struggled with legacy mainframe batch latency exceeding 12 hours, high infrastructure maintenance overhead, and delayed regulatory audit reports.",
+    solution: "Architected a hybrid microservices framework on AWS & Azure guided by TCS BaNCS enterprise cloud standards, implementing real-time event streaming via Apache Kafka and automated compliance pipelines.",
+    outcome: "99.999% high-availability uptime, settlement latency slashed by 88%, and deployment cycles compressed from 6 months to bi-weekly releases.",
+    metrics: ["-88%", "Settlement Latency", "99.999%", "System Uptime"],
     color: "from-blue-900/40 to-primary/10",
+    featured: true,
   },
   {
-    slug: "skyline-hiring",
-    client: "Skyline Ventures",
-    industry: "VC-backed Startup",
-    problem: "3 critical engineering roles unfilled for 6+ months, poor candidate quality, slow process.",
-    solution: "Talent network activation, JD rewrite, structured interview framework, offer optimisation.",
-    outcome: "3 senior hires in 2 weeks",
-    metrics: ["3 hires", "In 2 weeks"],
-    tag: "Hiring Advisory",
-    color: "from-purple-900/40 to-primary/10",
-  },
-  {
-    slug: "dune-analytics-strategy",
-    client: "Dune Analytics",
-    industry: "Data & Analytics",
-    problem: "Unclear product roadmap, feature bloat, 60%+ churn in first 90 days of user lifecycle.",
-    solution: "Jobs-to-be-done research, roadmap prioritisation, onboarding flow redesign, success metric definition.",
-    outcome: "-47% churn, +28% activation rate",
-    metrics: ["-47%", "Churn Rate"],
-    tag: "Product Strategy",
-    color: "from-teal-900/40 to-primary/10",
-  },
-  {
-    slug: "opal-digital-growth",
-    client: "Opal Digital",
-    industry: "Digital Agency",
-    problem: "Revenue plateau at $800K ARR, no systematic upsell motion, low client LTV.",
-    solution: "Upsell playbook, service packaging redesign, QBR framework, client health scoring system.",
-    outcome: "+$400K ARR in 6 months",
-    metrics: ["+$400K", "ARR Added"],
-    tag: "Business Strategy",
-    color: "from-orange-900/40 to-primary/10",
-  },
-  {
-    slug: "kairo-labs-tech",
-    client: "Kairo Labs",
-    industry: "Deep Tech",
-    problem: "Monolithic architecture blocking shipping velocity, 6-week release cycles.",
-    solution: "Architecture review, migration to microservices, CI/CD pipeline setup, team restructuring.",
-    outcome: "40% faster shipping, weekly releases",
-    metrics: ["40%", "Faster Shipping"],
-    tag: "Tech Advisory",
-    color: "from-pink-900/40 to-primary/10",
-  },
-  {
-    slug: "northwind-market-entry",
-    client: "Northwind Group",
-    industry: "Professional Services",
-    problem: "Entering two new market verticals with no validated demand or competitive intelligence.",
-    solution: "Market sizing, competitor deep-dives, customer interviews, pilot GTM playbooks for both verticals.",
-    outcome: "Both verticals launched, $1.2M pipeline built",
-    metrics: ["$1.2M", "Pipeline Built"],
-    tag: "Market Research",
+    slug: "aurascale-gtm",
+    client: "AuraScale",
+    industry: "B2B Cloud Workflow Software",
+    tag: "Growth Marketing & GTM",
+    problem: "Post-Seed SaaS startup struggled with long 9-month sales cycles, unfocused ICP targeting, and demo conversion rates below 4%.",
+    solution: "ConnectXpert restructured the outbound motion: defined high-intent mid-market ICPs, rebuilt the demo narrative around immediate ROI, and deployed personalized multi-touch cadence playbooks.",
+    outcome: "+280% pipeline velocity, demo-to-close rate improved from 3.8% to 14.2% in 90 days.",
+    metrics: ["+280%", "Pipeline Velocity", "14.2%", "Demo-to-Close"],
     color: "from-indigo-900/40 to-primary/10",
+    featured: true,
+  },
+  {
+    slug: "vanguard-clinical-architecture",
+    client: "Vanguard Clinical",
+    industry: "HealthTech & Telehealth",
+    tag: "Tech & Architecture Advisory",
+    problem: "Telehealth platform faced scaling bottlenecks, 45-second latency during peak video visits, and pending HIPAA audit readiness challenges.",
+    solution: "Conducted an end-to-end cloud architecture review, transitioned video routing to WebRTC edge clusters, implemented audit trails, and established automated compliance gates.",
+    outcome: "Latency reduced to under 180ms, 99.98% platform uptime during peak hours, passed third-party SOC2 Type II audit.",
+    metrics: ["<180ms", "Peak Latency", "99.98%", "System Uptime"],
+    color: "from-teal-900/40 to-primary/10",
+    featured: true,
+  },
+  {
+    slug: "finbridge-onboarding-ux",
+    client: "FinBridge Pay",
+    industry: "FinTech & Cross-Border Payments",
+    tag: "Product & UX Strategy",
+    problem: "High drop-off rate (54%) during KYC merchant onboarding and confusing tiered compliance documentation causing merchant churn.",
+    solution: "Streamlined 7-step merchant onboarding into a 3-step progressive KYC flow with instant OCR document verification and real-time status callbacks.",
+    outcome: "Merchant drop-off decreased by 62%, average onboarding completion time dropped from 48 hours to 9 minutes.",
+    metrics: ["-62%", "Drop-off Rate", "9 min", "Avg Onboarding"],
+    color: "from-emerald-900/40 to-primary/10",
+    featured: true,
+  },
+  {
+    slug: "logiroute-dispatch-ops",
+    client: "LogiRoute Systems",
+    industry: "Supply Chain & Logistics",
+    tag: "Business Strategy & Ops",
+    problem: "Freight brokerage operated on disconnected spreadsheets and manual phone dispatching, limiting broker capacity to 12 loads/day per operator.",
+    solution: "Built an integrated carrier dispatch workflow with automated rate intelligence, SMS driver updates, and real-time margin tracking dashboards.",
+    outcome: "Broker daily load capacity increased by 3.5x, gross margin improved by 420 bps in the first quarter.",
+    metrics: ["3.5x", "Broker Capacity", "+420 bps", "Gross Margin"],
+    color: "from-purple-900/40 to-primary/10",
+    featured: true,
+  },
+  {
+    slug: "pulse-collective-talent",
+    client: "Pulse Collective",
+    industry: "Omnichannel Consumer Retail",
+    tag: "Talent & Hiring Advisory",
+    problem: "Rapidly expanding consumer brand struggled to hire specialized Head of Performance Marketing and VP Supply Chain, with searches open for 7+ months.",
+    solution: "Engaged ConnectXpert hiring advisors to calibrate role specs, map top talent from high-growth competitors, run structured scorecards, and negotiate compensation packages.",
+    outcome: "Both executive hires closed within 24 days with 100% first-year retention and accelerated holiday season delivery.",
+    metrics: ["24 days", "Time-to-Hire", "100%", "Retention Rate"],
+    color: "from-orange-900/40 to-primary/10",
+    featured: true,
   },
 ];
 
+// Export alias for backwards compatibility
+export const caseStudies = DEFAULT_CASE_STUDIES;
+
 function PortfolioPage() {
+  const [studies, setStudies] = useState<CaseStudyRow[]>(DEFAULT_CASE_STUDIES);
+
+  useEffect(() => {
+    async function loadCaseStudies() {
+      try {
+        const { data, error } = await supabase
+          .from("case_studies")
+          .select("*")
+          .order("created_at", { ascending: true });
+        if (!error && data && data.length > 0) {
+          setStudies(data);
+        }
+      } catch {}
+    }
+    loadCaseStudies();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Nav />
@@ -93,13 +133,13 @@ function PortfolioPage() {
           <div className="pointer-events-none absolute inset-0 hero-glow" aria-hidden />
           <div className="relative mx-auto max-w-3xl px-5 text-center">
             <span className="inline-flex items-center rounded-full border border-primary/60 bg-primary/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-accent">
-              Case Studies
+              Verified Case Studies
             </span>
             <h1 className="mt-6 text-5xl font-semibold text-gradient leading-tight sm:text-6xl">
-              Real work, real results.
+              Real problem. Proven approach. Measurable impact.
             </h1>
             <p className="mt-6 text-base text-muted-foreground">
-              Every engagement is different. Here's how we've helped businesses across industries achieve measurable outcomes.
+              Every advisory engagement is grounded in clear outcomes. Review how ConnectXpert specialists have tackled critical bottlenecks for ambitious businesses.
             </p>
           </div>
         </section>
@@ -108,7 +148,7 @@ function PortfolioPage() {
         <section className="py-16">
           <div className="mx-auto max-w-6xl px-5">
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {caseStudies.map((cs) => (
+              {studies.map((cs) => (
                 <Link
                   key={cs.slug}
                   to="/portfolio/$slug"
@@ -118,8 +158,8 @@ function PortfolioPage() {
                   {/* Metric banner */}
                   <div className={`bg-gradient-to-br ${cs.color} flex items-center justify-between px-8 py-6`}>
                     <div>
-                      <p className="text-3xl font-bold text-foreground">{cs.metrics[0]}</p>
-                      <p className="text-sm text-foreground/70">{cs.metrics[1]}</p>
+                      <p className="text-3xl font-bold text-foreground">{cs.metrics?.[0]}</p>
+                      <p className="text-sm text-foreground/70">{cs.metrics?.[1]}</p>
                     </div>
                     <TrendingUp className="size-10 text-foreground/20" />
                   </div>

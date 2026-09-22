@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/blog")({
   head: () => ({
     meta: [
-      { title: "Blog — Ansh Consultancy" },
-      { name: "description", content: "Business growth insights, consulting strategies, and market analysis from the Ansh Consultancy team." },
+      { title: "Blog & Insights — ConnectXpert" },
+      { name: "description", content: "Business growth insights, operator strategies, and market analysis from ConnectXpert specialists." },
     ],
   }),
   component: BlogPage,
@@ -24,19 +24,16 @@ export const posts = [
     title: "How to Triple Your Inbound Leads in 90 Days (Without Paid Ads)",
     excerpt: "The systematic approach we use to help B2B businesses build a sustainable inbound engine — ICP definition, content architecture, and conversion optimisation.",
     category: "Growth",
-    author: "Ansh Sharma",
-    date: "September 10, 2026",
-    readTime: "8 min read",
-    featured: true,
+    date: "Sep 12, 2026",
+    readTime: "7 min read",
+    author: "Growth Practice Lead",
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800",
   },
   {
-    slug: "hiring-senior-engineers-fast",
-    title: "The Hiring Playbook: How to Close Senior Engineers in 2 Weeks",
-    excerpt: "Most companies lose great candidates to slow processes. Here's the exact framework we use to fill senior technical roles quickly without compromising on quality.",
+    slug: "hiring-first-10-engineers",
+    title: "The Playbook for Hiring Your First 10 Engineers (and Not Regretting It)",
+    excerpt: "Common hiring mistakes early-stage founders make, how to structure your technical interview process, and the offer strategies that close top engineers.",
     category: "Hiring",
-    author: "Rahul Mehta",
-    date: "September 5, 2026",
-    readTime: "6 min read",
     featured: false,
   },
   {
@@ -114,7 +111,7 @@ function BlogPage() {
               Insights
             </span>
             <h1 className="mt-6 text-5xl font-semibold text-gradient sm:text-6xl">
-              The Ansh Consultancy Blog
+              The ConnectXpert Blog
             </h1>
             <p className="mt-4 text-base text-muted-foreground">
               Practical frameworks, case studies, and market analysis to help you grow.

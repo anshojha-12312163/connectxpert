@@ -1,11 +1,11 @@
-import { Bot, FileText, Linkedin, Twitter } from "lucide-react";
+import { Cloud, Database, Bot, Calendar } from "lucide-react";
 import { Logo, SectionHeading } from "./bits";
 
 const nodes = [
-  { icon: Bot, desc: "GPT models to generate content and build intelligent agents." },
-  { icon: FileText, desc: "Summarize tasks, and organize info using Notion’s powerful AI assistant." },
-  { icon: Linkedin, desc: "Connect with Linked In and with dozens of other tools in it" },
-  { icon: Twitter, desc: "Connect with Twitter and with dozens of other tools in it without code" },
+  { icon: Cloud, desc: "Salesforce CRM: Bidirectional sync of client bookings, deal stages, and advisory notes." },
+  { icon: Database, desc: "TCS Enterprise Hub: Secure data pipelines, BaNCS banking bridges, and enterprise telemetry." },
+  { icon: Bot, desc: "AI Assistant & RAG: Fine-tuned LLM copilots to summarize transcripts and draft action items." },
+  { icon: Calendar, desc: "Google & Zoom: Auto-generated HD video rooms with instant multi-timezone calendar booking." },
 ];
 
 export function Integrations() {

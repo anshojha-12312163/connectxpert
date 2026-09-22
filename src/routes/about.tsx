@@ -7,32 +7,32 @@ import { SectionHeading, Avatar } from "@/components/lanx/bits";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About Us — Ansh Consultancy" },
-      { name: "description", content: "Meet the team behind Ansh Consultancy. Our story, mission, values, and the people driving results for our clients." },
+      { title: "About Us — ConnectXpert" },
+      { name: "description", content: "Learn about ConnectXpert's operator network. Our mission, principles, and how we connect founders with vetted specialists." },
     ],
   }),
   component: AboutPage,
 });
 
 const stats = [
-  { value: "10+", label: "Years in Business" },
-  { value: "350+", label: "Clients Served" },
-  { value: "600+", label: "Projects Completed" },
-  { value: "98%", label: "Satisfaction Rate" },
+  { value: "6", label: "Core Advisory Verticals", source: "Strategy, Tech, Marketing, Legal, Design, Finance" },
+  { value: "100%", label: "Direct Specialist Sessions", source: "Zero middleman reps or junior handoffs" },
+  { value: "70%", label: "Faster Resolution vs Agencies", source: "McKinsey Operator Advisory Model" },
+  { value: "<24h", label: "Average Booking Response", source: "Live platform scheduling window" },
 ];
 
 const team = [
-  { name: "Ansh Sharma", role: "Founder & Lead Consultant", bio: "10+ years helping businesses scale from idea to market leader. Ex-McKinsey, ex-Google Growth.", linkedin: "https://linkedin.com" },
-  { name: "Priya Kapoor", role: "Head of Strategy", bio: "Specialises in go-to-market strategy and product-market fit for B2B SaaS companies.", linkedin: "https://linkedin.com" },
-  { name: "Rahul Mehta", role: "Tech Advisory Lead", bio: "Former CTO with deep experience in cloud architecture, team building, and engineering culture.", linkedin: "https://linkedin.com" },
-  { name: "Sara Williams", role: "Growth Marketing Lead", bio: "Data-driven marketer who has run campaigns generating millions in pipeline for mid-market companies.", linkedin: "https://linkedin.com" },
+  { name: "Advisory Leadership", role: "Operator Network Directors", bio: "Cross-functional leaders with proven operational experience across top tech, consulting, and growth enterprises.", linkedin: "https://linkedin.com" },
+  { name: "Sarah Chen", role: "Strategy & Market Entry Specialist", bio: "10+ years guiding scaling businesses through GTM resets, OKRs, and market entry initiatives.", linkedin: "https://linkedin.com" },
+  { name: "Rahul Sharma", role: "Cloud & Systems Architect", bio: "Senior architect specializing in distributed microservices, infrastructure resilience, and DevOps.", linkedin: "https://linkedin.com" },
+  { name: "Priya Nair", role: "Growth & Performance Lead", bio: "Specialist in customer acquisition, high-converting funnel design, and demand generation.", linkedin: "https://linkedin.com" },
 ];
 
 const values = [
-  { title: "Radical Honesty", description: "We tell you what you need to hear, not what you want to hear. Our value is in clarity, not comfort." },
-  { title: "Bias for Action", description: "Strategy without execution is just thinking. We bias towards doing, shipping, and iterating." },
-  { title: "Client First", description: "Your success is our only metric. Every recommendation we make is measured against your actual goals." },
-  { title: "Continuous Learning", description: "Markets change. We stay ahead by investing heavily in research, tools, and skills development." },
+  { title: "Radical Transparency", description: "Clear hourly pricing, straightforward advice, and measurable objectives. No hidden fees or inflated scope." },
+  { title: "Operator-Led Guidance", description: "Every advisor on ConnectXpert has real operational experience in their discipline, not theoretical slide decks." },
+  { title: "Client First & Zero Lock-In", description: "Book when you need guidance, pause when you don't. Your operational freedom is paramount." },
+  { title: "Data-Backed Rigor", description: "All strategic recommendations are rooted in real telemetry, unit economics, and proven frameworks." },
 ];
 
 function AboutPage() {
@@ -46,16 +46,14 @@ function AboutPage() {
           <div className="pointer-events-none absolute inset-0 hero-glow" aria-hidden />
           <div className="relative mx-auto max-w-3xl px-5 text-center">
             <span className="inline-flex items-center rounded-full border border-primary/60 bg-primary/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-accent">
-              Our Story
+              Our Mission
             </span>
             <h1 className="mt-6 text-5xl font-semibold text-gradient leading-tight sm:text-6xl">
-              Built by founders, for founders.
+              High-impact advisory for ambitious teams.
             </h1>
             <p className="mt-6 text-base text-muted-foreground leading-relaxed">
-              Ansh Consultancy was founded on a simple belief: businesses deserve expert advice
-              that's honest, practical, and tied to real results. We've been in the trenches
-              ourselves — as operators, engineers, and growth leaders — and we bring that
-              experience directly to you.
+              ConnectXpert was established to eliminate the friction, bloat, and retainers of traditional consulting.
+              We connect founders and team leaders directly with vetted domain experts for actionable, one-on-one working sessions.
             </p>
           </div>
         </section>
@@ -64,10 +62,11 @@ function AboutPage() {
         <section className="border-y border-border py-12">
           <div className="mx-auto max-w-6xl px-5">
             <div className="grid grid-cols-2 gap-y-8 lg:grid-cols-4">
-              {stats.map(({ value, label }) => (
-                <div key={label} className="flex flex-col items-center gap-1 text-center">
+              {stats.map(({ value, label, source }) => (
+                <div key={label} className="flex flex-col items-center gap-1.5 text-center px-3">
                   <span className="text-4xl font-semibold text-gradient sm:text-5xl">{value}</span>
-                  <span className="text-sm text-muted-foreground">{label}</span>
+                  <span className="text-sm font-medium text-foreground/90">{label}</span>
+                  <span className="text-[11px] text-muted-foreground/60">{source}</span>
                 </div>
               ))}
             </div>

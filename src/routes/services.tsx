@@ -7,8 +7,8 @@ import { SectionHeading } from "@/components/lanx/bits";
 export const Route = createFileRoute("/services")({
   head: () => ({
     meta: [
-      { title: "Services — Ansh Consultancy" },
-      { name: "description", content: "Explore our consulting services: Business Strategy, Web & Product Consulting, Growth Marketing, Tech Advisory, Hiring, and more." },
+      { title: "Services — ConnectXpert" },
+      { name: "description", content: "Explore verified consulting services: Business Strategy, Product Advisory, Growth Marketing, Tech & Architecture, Legal, and Hiring." },
     ],
   }),
   component: ServicesPage,

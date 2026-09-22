@@ -74,7 +74,7 @@ export function Showcase() {
         >
           <div className="flex flex-col gap-3">
             <div className="float-slow">
-              <Chip label="Ansh Consultancy" verified />
+              <Chip label="ConnectXpert" verified />
             </div>
             <div className="ml-10 float-slow" style={{ animationDelay: "0.8s" }}>
               <Chip label="Robinson jr" verified />
@@ -129,7 +129,7 @@ export function Showcase() {
               </div>
               <Sparkline className="mt-4" />
               <div className="mt-2">
-                <Chip label="Ansh Consultancy" verified />
+                <Chip label="ConnectXpert" verified />
               </div>
             </div>
             <div className="mt-4 rounded-2xl border border-border bg-surface-2/95 p-4 backdrop-blur sm:absolute sm:right-0 sm:bottom-6 sm:mt-0 sm:w-[70%] sm:translate-x-3">
@@ -159,7 +159,7 @@ export function Showcase() {
               <Tag icon={<Eye className="size-3.5" />} label="Grow Income" />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Chip label="Ansh Consultancy" verified />
+              <Chip label="ConnectXpert" verified />
               <Chip label="Crystal" verified />
             </div>
           </div>

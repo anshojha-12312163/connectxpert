@@ -6,20 +6,20 @@ export function Cta() {
     <section id="contact" className="relative overflow-hidden pt-24">
       <div className="pointer-events-none absolute inset-0 soft-glow opacity-80" aria-hidden />
       <div className="relative mx-auto flex max-w-4xl flex-col items-center px-5 text-center">
-        <SectionBadge>What you still waiting for</SectionBadge>
-        <h2 className="mt-6 text-4xl font-semibold text-gradient sm:text-5xl">Grow Now with Ansh Consultancy</h2>
+        <SectionBadge>Get Started Today</SectionBadge>
+        <h2 className="mt-6 text-4xl font-semibold text-gradient sm:text-5xl">Scale Faster with ConnectXpert</h2>
         <p className="mt-4 max-w-md text-sm text-muted-foreground sm:text-base">
-          Unlock the power of data to drive smarter decisions and faster growth with our platform.
+          Connect with top-tier verified specialists to unblock strategy, technology, and marketing bottlenecks.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <GlowButton href="#pricing">
-            Get Started Now
+          <GlowButton href="/book">
+            Book Consultation
           </GlowButton>
           <a
-            href="mailto:anshconsultancy@mail.com"
+            href="/experts"
             className="rounded-xl border border-border bg-surface-2/70 px-6 py-3 text-sm font-semibold transition-colors hover:bg-surface-2"
           >
-            Book a Demo
+            Explore Experts
           </a>
         </div>
       </div>
@@ -31,7 +31,7 @@ export function Cta() {
         >
           <img
             src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2940&auto=format&fit=crop"
-            alt="Ansh Consultancy team collaborating in a modern office"
+            alt="ConnectXpert advisory specialists collaborating with client team"
             width={1600}
             height={912}
             loading="lazy"

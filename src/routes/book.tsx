@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   TrendingUp, BarChart2, Users, Code2, Lightbulb, Globe,
   Check, ChevronLeft, CalendarPlus, Clock, Calendar,
-  Mail, Loader2, RotateCcw, XCircle, ArrowRight,
+  Mail, Loader2, RotateCcw, XCircle, ArrowRight, Video, Copy, ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Nav } from "@/components/lanx/nav";
@@ -21,8 +21,8 @@ import {
 export const Route = createFileRoute("/book")({
   head: () => ({
     meta: [
-      { title: "Book a Consultation — Ansh Consultancy" },
-      { name: "description", content: "Book a free consulting session with Ansh Consultancy. Choose your service, pick a time, and get started." },
+      { title: "Book a Consultation — ConnectXpert" },
+      { name: "description", content: "Book a free consulting session with ConnectXpert. Choose your service, pick a time, and get started." },
     ],
   }),
   component: BookPage,
@@ -370,6 +370,7 @@ function StepSuccess({
   timezone,
   name,
   bookingRef,
+  meetingUrl,
 }: {
   service: Service;
   date: string;
@@ -377,21 +378,41 @@ function StepSuccess({
   timezone: string;
   name: string;
   bookingRef: string;
+  meetingUrl?: string;
 }) {
   const [cancelStatus, setCancelStatus] = useState<"idle" | "done">("idle");
+  const [copied, setCopied]             = useState(false);
 
   const dateObj = new Date(...(date.split("-").map(Number) as [number, number, number]).map((n, i) => i === 1 ? n - 1 : n) as [number, number, number]);
-  const displayDate = dateObj.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const displayDate = dateObj.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
-  // Google Calendar add link
-  const gcStart = date.replace(/-/g, "") + "T" + time.replace(":", "") + "00";
-  const gcEnd   = (() => {
-    const [h, m] = time.split(":").map(Number);
-    const end = new Date(dateObj);
-    end.setHours(h, m + service.duration_minutes);
-    return `${date.replace(/-/g, "")}T${String(end.getHours()).padStart(2,"0")}${String(end.getMinutes()).padStart(2,"0")}00`;
-  })();
-  const gcUrl = `https://calendar.google.com/calendar/r/eventedit?text=${encodeURIComponent(service.name + " — Ansh Consultancy")}&dates=${gcStart}/${gcEnd}&details=${encodeURIComponent(`Booking ref: ${bookingRef}`)}&location=Online`;
+  const liveMeetingUrl = meetingUrl || `https://meet.jit.si/cx-session-${bookingRef.toLowerCase()}`;
+
+  // Standard Google Calendar TEMPLATE URL
+  const [h, m] = time.split(":").map(Number);
+  const startDateTime = new Date(dateObj);
+  startDateTime.setHours(h, m, 0, 0);
+
+  const endDateTime = new Date(dateObj);
+  endDateTime.setHours(h, m + service.duration_minutes, 0, 0);
+
+  const formatGcDate = (d: Date) => {
+    return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  };
+
+  const gcDates = `${formatGcDate(startDateTime)}/${formatGcDate(endDateTime)}`;
+  const eventTitle = `${service.name} — ConnectXpert`;
+  const eventDetails = `Your consultation with ConnectXpert is confirmed.\n\nBooking Reference: ${bookingRef}\nService: ${service.name} (${service.duration_minutes} min)\nClient: ${name}\nTimezone: ${timezone}\n\nJoin Video Call: ${liveMeetingUrl}\n\nNeed to reschedule? Visit ${typeof window !== "undefined" ? window.location.origin : "https://connectxpert.com"}/book`;
+
+  const gcUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${gcDates}&details=${encodeURIComponent(eventDetails)}&location=${encodeURIComponent(liveMeetingUrl)}`;
+
+  function handleCopyMeetingUrl() {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(liveMeetingUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  }
 
   async function handleCancel() {
     await updateBookingStatus(bookingRef, "cancelled");
@@ -444,11 +465,45 @@ function StepSuccess({
         <p className="mt-1 text-xs text-white/30">Keep this for your records</p>
       </div>
 
+      {/* Video Call Room Link */}
+      <div className="rounded-2xl border border-blue-500/25 bg-blue-500/5 p-5 w-full text-left space-y-2.5">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
+          <Video className="size-4" /> Live Video Meeting Room
+        </div>
+        <p className="text-xs text-white/60">
+          Your secure encrypted meeting room has been generated. Use this link at call time:
+        </p>
+        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2.5">
+          <input
+            type="text"
+            readOnly
+            value={liveMeetingUrl}
+            className="flex-1 bg-transparent text-xs font-mono text-white/80 outline-none truncate"
+          />
+          <button
+            type="button"
+            onClick={handleCopyMeetingUrl}
+            className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1 text-xs font-medium text-white hover:bg-white/20 transition-colors shrink-0"
+          >
+            {copied ? <Check className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
+            {copied ? "Copied!" : "Copy"}
+          </button>
+          <a
+            href={liveMeetingUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 rounded-lg bg-blue-500 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-600 transition-colors shrink-0"
+          >
+            <ExternalLink className="size-3.5" /> Join Room
+          </a>
+        </div>
+      </div>
+
       {/* Confirmation note */}
       <div className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/3 px-5 py-4 w-full text-left">
         <Mail className="size-4 text-blue-400 shrink-0 mt-0.5" />
         <p className="text-sm text-white/60">
-          A confirmation has been sent to your email. Our team will be in touch 24 hours before your call with a meeting link.
+          A confirmation with call details has been sent to your email. Click below to add this event to your personal Google Calendar.
         </p>
       </div>
 
@@ -458,13 +513,13 @@ function StepSuccess({
           href={gcUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-5 py-2.5 text-sm font-semibold text-blue-400 hover:bg-blue-500/20 transition-colors"
+          className="flex items-center gap-2 rounded-xl border border-blue-500/40 bg-blue-500/15 px-6 py-3 text-sm font-semibold text-blue-300 hover:bg-blue-500/25 transition-all shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)]"
         >
-          <CalendarPlus className="size-4" /> Add to Google Calendar
+          <CalendarPlus className="size-4 text-blue-400" /> Add to Google Calendar
         </a>
         <a
           href={`/book/ics?ref=${bookingRef}&date=${date}&time=${time}&service=${encodeURIComponent(service.name)}`}
-          className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white/70 hover:bg-white/10 transition-colors"
+          className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white/70 hover:bg-white/10 transition-colors"
         >
           <CalendarPlus className="size-4" /> Download .ics
         </a>
@@ -508,7 +563,8 @@ function BookPage() {
     name: "", email: "", company: "", phone: "", notes: "",
   });
   // Step 6
-  const [bookingRef, setBookingRef]  = useState("");
+  const [bookingRef, setBookingRef]   = useState("");
+  const [meetingUrl, setMeetingUrl]   = useState("");
   const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "error">("idle");
 
   const topRef = useRef<HTMLDivElement>(null);
@@ -538,6 +594,7 @@ function BookPage() {
         notes:            details.notes.trim()   || undefined,
       });
       setBookingRef(result.booking_reference);
+      setMeetingUrl(result.video_room_url);
       setSubmitStatus("idle");
       setStep(6);
     } catch {
@@ -628,6 +685,7 @@ function BookPage() {
               timezone={timezone}
               name={details.name}
               bookingRef={bookingRef}
+              meetingUrl={meetingUrl}
             />
           )}
         </div>

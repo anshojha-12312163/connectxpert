@@ -146,7 +146,7 @@ export function Pricing() {
         <div className="mt-12 flex justify-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-2/70 px-5 py-3 text-sm text-muted-foreground">
             <HandCoins className="size-4 text-accent" />
-            Ansh Consultancy contributes 5% of subscription to the green life
+            ConnectXpert contributes 5% of subscription profits to carbon-neutral initiatives
           </span>
         </div>
       </div>

@@ -23,8 +23,8 @@ export function Comparison() {
       <div className="mx-auto max-w-5xl px-5">
         <SectionHeading
           badge="Comparison"
-          title="Why Ansh Consultancy Stands Out"
-          subtitle="See how we compare against others in performance, growth"
+          title="Why ConnectXpert Stands Out"
+          subtitle="See how our operator network compares against traditional agencies and static directories"
         />
 
         <div className="mt-14 grid gap-8 md:grid-cols-2">

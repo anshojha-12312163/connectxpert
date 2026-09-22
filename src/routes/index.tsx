@@ -1,6 +1,4 @@
-import { useEffect } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/lib/supabase";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { Nav } from "@/components/lanx/nav";
 import { Hero } from "@/components/lanx/hero";
@@ -20,9 +18,9 @@ import { Cta } from "@/components/lanx/cta";
 import { TrustBadges } from "@/components/lanx/trust-badges";
 import { Footer } from "@/components/lanx/footer";
 
-const title = "Ansh Consultancy — Expert Business Consulting to Sell, Hire & Scale";
+const title = "ConnectXpert — Expert Business & Tech Advisory to Sell, Hire & Scale";
 const description =
-  "Ansh Consultancy helps businesses launch, grow, and scale with expert consulting, hiring support, market insights, and proven growth strategies.";
+  "ConnectXpert connects ambitious businesses with vetted specialists across strategy, engineering, growth marketing, product, and operations.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -39,24 +37,6 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const navigate = useNavigate();
-
-  // Handle OAuth callback: when Google redirects back to origin with a
-  // hash fragment (#access_token=…), Supabase's detectSessionInUrl exchanges
-  // it for a session. This listener catches the SIGNED_IN event and redirects.
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      const hasAuthParams =
-        typeof window !== "undefined" &&
-        (window.location.hash.includes("access_token") ||
-         window.location.search.includes("code="));
-      if (event === "SIGNED_IN" && session && hasAuthParams) {
-        navigate({ to: "/dashboard" });
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
   return (
     <div className="min-h-screen bg-background">
       <Nav />

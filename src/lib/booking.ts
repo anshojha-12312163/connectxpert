@@ -178,27 +178,55 @@ export async function createBooking(payload: {
   service_name: string;
   name: string;
   email: string;
-  company?: string;
-  phone?: string;
+  company?: string | undefined;
+  phone?: string | undefined;
   preferred_date: string;
   preferred_time: string;
   timezone: string;
-  notes?: string;
-}): Promise<{ id: string; booking_reference: string }> {
-  const booking_reference = `AC-${Date.now().toString(36).toUpperCase()}`;
+  notes?: string | undefined;
+}): Promise<{ id: string; booking_reference: string; video_room_url: string }> {
+  const booking_reference = `CX-${Date.now().toString(36).toUpperCase()}`;
+  
+  // Create client-side fallback link
+  const fallbackRoomName = `cx-session-${booking_reference.toLowerCase()}`;
+  const fallbackUrl = `https://meet.jit.si/${fallbackRoomName}`;
+
   const { data, error } = await supabase
     .from("demo_bookings")
-    .insert({ ...payload, booking_reference, status: "pending" })
-    .select("id, booking_reference")
+    .insert({ 
+      ...payload, 
+      booking_reference, 
+      status: "pending",
+      video_room_url: fallbackUrl,
+      video_room_name: fallbackRoomName
+    })
+    .select("id, booking_reference, video_room_url")
     .single();
+    
   if (error) throw error;
+  
   // Track analytics
   await supabase.from("analytics_events").insert({
     event_type: "demo_booking",
     page: "/book",
     metadata: { service_id: payload.service_id },
   });
-  console.log(`📧 Confirmation email → ${payload.email} | Admin notification sent.`);
+  
+  // Call edge function asynchronously (fire-and-forget or await depending on needs, we will await here to catch failures)
+  try {
+    const { data: funcData, error: funcError } = await supabase.functions.invoke("confirm-booking", {
+      body: { booking_id: data.id }
+    });
+    
+    if (funcError) {
+      console.error("Edge function error (fallback link remains):", funcError);
+    } else {
+      console.log(`📧 Confirmation email status → Client: ${funcData?.client_email_sent}, Admin: ${funcData?.admin_email_sent}`);
+    }
+  } catch (err) {
+    console.error("Failed to invoke confirm-booking function:", err);
+  }
+  
   return data;
 }
 

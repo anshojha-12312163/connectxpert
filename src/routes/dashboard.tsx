@@ -26,6 +26,8 @@ import {
   Tag,
   MessageSquare,
   BookOpen,
+  ArrowLeft,
+  Globe,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Logo, Avatar } from "@/components/lanx/bits";
@@ -68,8 +70,11 @@ function Sidebar({
   onClose?: () => void;
   onLogout: () => void;
 }) {
+  const userMeta = user?.user_metadata as Record<string, any> | undefined;
   const displayName =
-    user?.user_metadata?.full_name ?? user?.email?.split("@")[0] ?? "Admin";
+    (userMeta && typeof userMeta["full_name"] === "string" ? userMeta["full_name"] : undefined) ??
+    user?.email?.split("@")[0] ??
+    "Admin";
 
   return (
     <div
@@ -78,7 +83,9 @@ function Sidebar({
     >
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 border-b border-white/[0.06] px-5">
-        <TiltLogo><Logo size="sm" /></TiltLogo>
+        <Link to="/" title="Back to Website">
+          <TiltLogo><Logo size="sm" /></TiltLogo>
+        </Link>
         {onClose && (
           <button
             onClick={onClose}
@@ -95,83 +102,75 @@ function Sidebar({
         <p className="mb-1.5 px-3 text-[9px] font-semibold uppercase tracking-[0.15em] text-white/20">
           Main
         </p>
-        <StaggerContainer staggerMs={45}>
-        {NAV_ITEMS.filter(i => i.section === "main").map(({ label, href, icon: Icon }) => {
+        {NAV_ITEMS.filter((i) => i.section === "main").map(({ label, href, icon: Icon }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
-            <StaggerItem key={label}>
-              <Link
-                to={href}
-                onClick={onClose}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                  active
-                    ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
-                    : "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
-                )}
-              >
-                <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
-                {label}
-              </Link>
-            </StaggerItem>
+            <Link
+              key={label}
+              to={href}
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150",
+                active
+                  ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
+                  : "text-white/50 hover:bg-white/[0.04] hover:text-white/90"
+              )}
+            >
+              <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
+              {label}
+            </Link>
           );
         })}
-        </StaggerContainer>
 
         {/* Expert Hub section */}
         <p className="mb-1.5 mt-4 px-3 text-[9px] font-semibold uppercase tracking-[0.15em] text-white/20">
           Expert Hub
         </p>
-        <StaggerContainer staggerMs={50}>
-        {NAV_ITEMS.filter(i => i.section === "hub").map(({ label, href, icon: Icon }) => {
+        {NAV_ITEMS.filter((i) => i.section === "hub").map(({ label, href, icon: Icon }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
-            <StaggerItem key={label}>
-              <Link
-                to={href}
-                onClick={onClose}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                  active
-                    ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
-                    : "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
-                )}
-              >
-                <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
-                {label}
-              </Link>
-            </StaggerItem>
+            <Link
+              key={label}
+              to={href}
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150",
+                active
+                  ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
+                  : "text-white/50 hover:bg-white/[0.04] hover:text-white/90"
+              )}
+            >
+              <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
+              {label}
+            </Link>
           );
         })}
-        </StaggerContainer>
 
         {/* System section */}
         <p className="mb-1.5 mt-4 px-3 text-[9px] font-semibold uppercase tracking-[0.15em] text-white/20">
           System
         </p>
-        <StaggerContainer staggerMs={55}>
-        {NAV_ITEMS.filter(i => i.section === "system").map(({ label, href, icon: Icon }) => {
+        {NAV_ITEMS.filter((i) => i.section === "system").map(({ label, href, icon: Icon }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
-            <StaggerItem key={label}>
-              <Link
-                to={href}
-                onClick={onClose}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                  active
-                    ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
-                    : "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
-                )}
-              >
-                <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
-                {label}
-              </Link>
-            </StaggerItem>
+            <Link
+              key={label}
+              to={href}
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150",
+                active
+                  ? "bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-[0_0_12px_-4px_rgba(59,130,246,0.3)]"
+                  : "text-white/50 hover:bg-white/[0.04] hover:text-white/90"
+              )}
+            >
+              <Icon className={cn("size-4 shrink-0", active ? "text-blue-400" : "text-white/35")} />
+              {label}
+            </Link>
           );
         })}
-        </StaggerContainer>
       </nav>
+
 
       {/* Upgrade card */}
       <div className="px-3 pb-3">
@@ -196,6 +195,16 @@ function Sidebar({
             Upgrade
           </Link>
         </div>
+      </div>
+
+      {/* Back to Website */}
+      <div className="px-3 pb-2">
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-white/50 hover:text-white hover:bg-white/[0.04] transition-colors"
+        >
+          <ArrowLeft className="size-3.5" /> Back to Website
+        </Link>
       </div>
 
       {/* User + logout */}
@@ -231,8 +240,11 @@ function TopBar({
   onMenuClick: () => void;
   notifCount: number;
 }) {
+  const userMeta = user?.user_metadata as Record<string, any> | undefined;
   const displayName =
-    user?.user_metadata?.full_name ?? user?.email?.split("@")[0] ?? "Admin";
+    (userMeta && typeof userMeta["full_name"] === "string" ? userMeta["full_name"] : undefined) ??
+    user?.email?.split("@")[0] ??
+    "Admin";
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -270,6 +282,13 @@ function TopBar({
       </div>
 
       <div className="ml-auto flex items-center gap-3">
+        {/* Back to live website button */}
+        <Link
+          to="/"
+          className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs text-white/60 hover:text-white hover:bg-white/[0.06] transition-colors"
+        >
+          <Globe className="size-3.5" /> Back to Website
+        </Link>
         {/* Notification bell */}
         <button className="relative flex size-9 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-white/50 hover:text-white transition-colors">
           <Bell className="size-4" />
@@ -315,6 +334,9 @@ function TopBar({
               <div className="my-1 border-t border-white/[0.06]" />
               <button
                 onClick={async () => {
+                  if (typeof window !== "undefined") {
+                    localStorage.removeItem("cx_demo_user");
+                  }
                   await supabase.auth.signOut();
                   window.location.href = "/login";
                 }}
@@ -341,46 +363,62 @@ function DashboardLayout() {
 
   useEffect(() => {
     let mounted = true;
+
+    // 1. Check for errors in URL (both search and hash)
+    const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const hashParams = typeof window !== "undefined" ? new URLSearchParams(window.location.hash.replace(/^#/, "")) : null;
+    const rawError = searchParams?.get("error_description") ||
+                     searchParams?.get("error") ||
+                     hashParams?.get("error_description") ||
+                     hashParams?.get("error");
+
+    if (rawError) {
+      window.location.href = `/login?error=${encodeURIComponent(rawError)}`;
+      return;
+    }
+
+    // 2. Check if auth parameters (PKCE code or access_token hash) are present
     const hasAuthParams =
       typeof window !== "undefined" &&
-      (window.location.hash.includes("access_token") ||
-       window.location.search.includes("code=") ||
-       window.location.hash.includes("error="));
+      (window.location.search.includes("code=") ||
+       window.location.hash.includes("access_token"));
 
+    // 3. Listen to auth state changes (Supabase client exchanges PKCE code automatically)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       if (session?.user) {
         setUser(session.user);
         setLoading(false);
+        // Clean URL params after successful OAuth callback
+        if (typeof window !== "undefined" && (window.location.hash || window.location.search.includes("code="))) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
       } else if (event === "SIGNED_OUT") {
         navigate({ to: "/login" });
       }
     });
 
-    // Always check for existing session on mount
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    // 4. Check for existing session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
-      
-      const hasErrorInUrl = typeof window !== "undefined" && window.location.hash.includes("error=");
-      
-      if (error || !session?.user || hasErrorInUrl) {
-        // If there are valid auth params (and no error), give Supabase a moment to exchange the token.
-        // Otherwise, redirect to login.
-        if (!hasAuthParams || hasErrorInUrl) {
-          navigate({ to: "/login" });
-        } else {
-          // Fallback: if it's still stuck exchanging after 3 seconds, double check session before kicking to login
-          setTimeout(async () => {
-            if (!mounted) return;
-            const { data } = await supabase.auth.getSession();
-            if (!data.session?.user) {
-              navigate({ to: "/login" });
-            }
-          }, 3000);
-        }
-      } else {
+      if (session?.user) {
         setUser(session.user);
         setLoading(false);
+      } else if (!hasAuthParams) {
+        // No session and no auth params in URL, redirect to login
+        navigate({ to: "/login" });
+      } else {
+        // Auth params in URL: give Supabase up to 4 seconds to finish exchange
+        setTimeout(async () => {
+          if (!mounted) return;
+          const { data } = await supabase.auth.getSession();
+          if (data?.session?.user) {
+            setUser(data.session.user);
+            setLoading(false);
+          } else {
+            navigate({ to: "/login" });
+          }
+        }, 4000);
       }
     });
 
@@ -394,6 +432,9 @@ function DashboardLayout() {
   useEffect(() => setMobileOpen(false), [location.pathname]);
 
   async function handleLogout() {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("cx_demo_user");
+    }
     await supabase.auth.signOut();
     navigate({ to: "/login" });
   }

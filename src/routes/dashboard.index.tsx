@@ -46,7 +46,7 @@ function buildMonthly(rows: { created_at: string }[]) {
     if (bk) bk.value++;
   }
   return buckets.map((b, i) => {
-    const prev   = i > 0 ? buckets[i - 1].value : 0;
+    const prev   = i > 0 && buckets[i - 1] ? buckets[i - 1]!.value : 0;
     const change = prev === 0 ? (b.value > 0 ? 100 : 0) : Math.round(((b.value - prev) / prev) * 100);
     return { month: b.month, value: b.value, pct: `${change > 0 ? "+" : ""}${change}%`, trend: b.value };
   });
@@ -62,7 +62,9 @@ function buildDaily(rows: { created_at: string }[], days: number) {
   }
   for (const r of rows) {
     const k = r.created_at?.slice(0, 10);
-    if (k && k in b) b[k]++;
+    if (k && k in b) {
+      b[k] = (b[k] ?? 0) + 1;
+    }
   }
   return Object.entries(b).map(([date, value]) => ({ month: date.slice(5), value, pct: "", trend: value }));
 }
@@ -187,10 +189,14 @@ function DashboardIndex() {
     TRAFFIC_NAMES.forEach((n) => (srcMap[n] = 0));
     for (const e of allEv) {
       const s = (e.metadata as any)?.source;
-      if (s && s in srcMap) srcMap[s]++;
+      if (s && s in srcMap) {
+        srcMap[s] = (srcMap[s] ?? 0) + 1;
+      }
     }
     const srcTotal = Object.values(srcMap).reduce((a, b) => a + b, 0);
-    if (srcTotal > 0) setTraffic(TRAFFIC_NAMES.map((n, i) => ({ name: n, value: srcMap[n], color: TRAFFIC_COLORS[i] })));
+    if (srcTotal > 0) {
+      setTraffic(TRAFFIC_NAMES.map((n, i) => ({ name: n, value: srcMap[n] ?? 0, color: TRAFFIC_COLORS[i] ?? "#3b82f6" })));
+    }
     setLoadStage(2); // Charts visible
 
     // ── Stage 3: Recent rows (tables at bottom) ───────────────
@@ -400,7 +406,7 @@ function DashboardIndex() {
             <PieChart width={160} height={160}>
               <Pie data={traffic} cx={80} cy={80} innerRadius={50} outerRadius={72}
                 paddingAngle={3} dataKey="value" strokeWidth={0}>
-                {traffic.map((_, i) => <Cell key={i} fill={traffic[i].color} />)}
+                {traffic.map((t, i) => <Cell key={i} fill={t.color ?? "#3b82f6"} />)}
               </Pie>
             </PieChart>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">

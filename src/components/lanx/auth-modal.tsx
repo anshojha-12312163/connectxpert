@@ -73,7 +73,15 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProp
     setStatus("loading");
     if (tab === "login") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) { setStatus("error"); setErrorMsg(error.message); return; }
+      if (error) {
+        setStatus("error");
+        if (error.message.toLowerCase().includes("email not confirmed")) {
+          setErrorMsg("Email not confirmed yet. Use Instant Demo Login or verify your email.");
+        } else {
+          setErrorMsg(error.message);
+        }
+        return;
+      }
       onClose();
       navigate({ to: "/dashboard" });
     } else {
@@ -208,7 +216,7 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProp
               {/* Divider */}
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "18px" }}>
                 <div style={{ flex: 1, height: "1px", background: "#2a3050" }} />
-                <span style={{ color: "#4a5170", fontSize: "12px" }}>or</span>
+                <span style={{ color: "#4a5170", fontSize: "12px" }}>or continue with email</span>
                 <div style={{ flex: 1, height: "1px", background: "#2a3050" }} />
               </div>
 
@@ -325,7 +333,7 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProp
 
           {/* Illustration */}
           <div style={{ marginTop: "36px", position: "relative", zIndex: 1 }}>
-            <svg viewBox="0 0 320 200" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 320 200" style={{ width: "100%", height: "auto" }} xmlns="http://www.w3.org/2000/svg">
               <rect x="30" y="40" width="180" height="120" rx="12" fill="#ffffff0f" stroke="#4361ee55"/>
               <rect x="46" y="58" width="90" height="10" rx="5" fill="#4361ee88"/>
               <rect x="46" y="78" width="140" height="8" rx="4" fill="#ffffff22"/>
@@ -356,7 +364,7 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProp
               ))}
             </div>
             <span style={{ color: "#8890a8", fontSize: "12.5px" }}>
-              Join <strong style={{ color: "#f5f6fa" }}>15,725+</strong> growing businesses
+              Direct access to <strong style={{ color: "#f5f6fa" }}>vetted specialists</strong>
             </span>
           </div>
         </div>

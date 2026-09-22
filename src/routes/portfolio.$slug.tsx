@@ -1,17 +1,19 @@
+import { useState, useEffect } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, Check } from "lucide-react";
 import { Nav } from "@/components/lanx/nav";
 import { Footer } from "@/components/lanx/footer";
-import { caseStudies } from "./portfolio";
+import { DEFAULT_CASE_STUDIES } from "./portfolio";
+import { supabase, type CaseStudyRow } from "@/lib/supabase";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: CaseStudyPage,
   head: ({ params }) => {
-    const cs = caseStudies.find((c) => c.slug === params.slug);
+    const cs = DEFAULT_CASE_STUDIES.find((c) => c.slug === params.slug);
     return {
       meta: [
-        { title: cs ? `${cs.client} — Ansh Consultancy` : "Case Study" },
-        { name: "description", content: cs ? cs.outcome : "" },
+        { title: cs ? `${cs.client} Case Study — ConnectXpert` : "Case Study — ConnectXpert" },
+        { name: "description", content: cs ? cs.outcome : "ConnectXpert verified case study and outcomes." },
       ],
     };
   },
@@ -19,8 +21,29 @@ export const Route = createFileRoute("/portfolio/$slug")({
 
 function CaseStudyPage() {
   const { slug } = Route.useParams();
-  const cs = caseStudies.find((c) => c.slug === slug);
-  if (!cs) throw notFound();
+  const fallback = DEFAULT_CASE_STUDIES.find((c) => c.slug === slug);
+  const [cs, setCs] = useState<CaseStudyRow | null>(fallback || null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadStudy() {
+      try {
+        const { data, error } = await supabase
+          .from("case_studies")
+          .select("*")
+          .eq("slug", slug)
+          .single();
+        if (!error && data) {
+          setCs(data);
+        }
+      } catch {}
+      setLoading(false);
+    }
+    loadStudy();
+  }, [slug]);
+
+  if (!cs && !loading) throw notFound();
+  if (!cs) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -62,7 +85,11 @@ function CaseStudyPage() {
             <div>
               <h2 className="text-lg font-semibold mb-3">Key Results</h2>
               <ul className="space-y-2">
-                {[cs.outcome, `${cs.metrics[0]} ${cs.metrics[1]}`, "Full client satisfaction, ongoing partnership"].map((r) => (
+                {[
+                  cs.outcome,
+                  ...(cs.metrics && cs.metrics.length >= 2 ? [`${cs.metrics[0]} ${cs.metrics[1]}`] : []),
+                  "Measurable milestone achievement & verified impact",
+                ].map((r) => (
                   <li key={r} className="flex items-start gap-2.5 text-sm">
                     <Check className="mt-0.5 size-4 shrink-0 text-accent" />
                     <span className="text-foreground/85">{r}</span>

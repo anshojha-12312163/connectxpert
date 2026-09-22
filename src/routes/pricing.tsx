@@ -10,7 +10,7 @@ import { GlowButton } from "@/components/lanx/glow-button";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Pricing — Ansh Consultancy" },
+      { title: "Pricing — ConnectXpert" },
       { name: "description", content: "Transparent pricing for every stage. Starter, Pro, and Enterprise consulting packages with no long-term lock-in." },
     ],
   }),

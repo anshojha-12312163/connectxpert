@@ -123,7 +123,7 @@ export function Footer() {
                 anshojha420@gmail.com
               </a>
               <a
-                href="https://wa.me/917307627039"
+                href="https://wa.me/917307627039?text=Hi%20Ansh%20Consultancy%20Team!%0AName:%20%0ACompany:%20%0AInterest:%20Advisory%20Services%0AMessage:%20I%20would%20like%20to%20connect%20with%20Ansh%20Consultancy."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-center text-green-400 hover:text-green-300 transition-colors flex items-center justify-center gap-1.5"
@@ -155,7 +155,7 @@ export function Footer() {
 
         {/* Bottom */}
         <div className="mt-10 flex flex-col items-center justify-between gap-2 text-xs text-muted-foreground sm:flex-row">
-          <p>© {new Date().getFullYear()} Ansh Consultancy. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} ConnectXpert. All rights reserved.</p>
           <div className="flex gap-4">
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
             <Link to="/contact" className="hover:text-foreground transition-colors">Support</Link>

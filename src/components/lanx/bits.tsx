@@ -71,9 +71,9 @@ export function Avatar({
   src,
 }: {
   name: string;
-  size?: number;
-  className?: string;
-  src?: string;
+  size?: number | undefined;
+  className?: string | undefined;
+  src?: string | undefined;
 }) {
   if (src) {
     return (
@@ -111,16 +111,22 @@ export function Avatar({
   );
 }
 
-export function JoinRow({ count }: { count: string }) {
+export function JoinRow({ count, label }: { count?: string | number; label?: string }) {
   return (
     <div className="flex items-center justify-center gap-3">
       <div className="flex -space-x-2">
-        {["Alex Jonas", "John Robert", "Maggie Hue", "Jack Hanma"].map((n) => (
+        {["Sarah Chen", "Rahul Sharma", "James Okafor", "Priya Nair"].map((n) => (
           <Avatar key={n} name={n} size={28} className="ring-2 ring-background" />
         ))}
       </div>
       <p className="text-sm text-muted-foreground">
-        Join <span className="font-semibold text-foreground">{count} +</span> growing businesses
+        {label ? (
+          <span>{label}</span>
+        ) : count ? (
+          <>Direct access to <span className="font-semibold text-foreground">{count}</span> verified specialists</>
+        ) : (
+          <>Connecting with <span className="font-semibold text-foreground">vetted specialists</span> across 6 core domains</>
+        )}
       </p>
     </div>
   );

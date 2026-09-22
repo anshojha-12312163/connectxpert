@@ -8,8 +8,8 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Ansh Consultancy" },
-      { name: "description", content: "Get in touch with Ansh Consultancy. Book a free consultation, send us a message, or subscribe to our newsletter." },
+      { title: "Contact — ConnectXpert" },
+      { name: "description", content: "Get in touch with ConnectXpert. Book a consultation, send an inquiry, or join our specialist network." },
     ],
   }),
   component: ContactPage,

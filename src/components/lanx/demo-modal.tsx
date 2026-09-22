@@ -50,7 +50,12 @@ export function DemoModal({ open, onClose }: Props) {
     e.preventDefault();
     if (!validate()) return;
     setStatus("loading");
-    const { error } = await supabase.from("demo_bookings").insert({
+    
+    const booking_reference = `AC-${Date.now().toString(36).toUpperCase()}`;
+    const fallbackRoomName = `cx-session-${booking_reference.toLowerCase()}`;
+    const fallbackUrl = `https://meet.jit.si/${fallbackRoomName}`;
+
+    const { data, error } = await supabase.from("demo_bookings").insert({
       name: form.name.trim(),
       email: form.email.trim(),
       company: form.company.trim() || null,
@@ -60,10 +65,27 @@ export function DemoModal({ open, onClose }: Props) {
       timezone: tz,
       notes: form.notes.trim() || null,
       status: "pending",
-    });
+      booking_reference,
+      video_room_url: fallbackUrl,
+      video_room_name: fallbackRoomName,
+    }).select("id").single();
+    
     if (error) { setStatus("error"); return; }
+    
     await supabase.from("analytics_events").insert({ event_type: "demo_booking", page: "/demo-modal" });
-    console.log("✅ Demo booking confirmation would be emailed to:", form.email);
+    
+    // Call Edge Function
+    try {
+      const { data: funcData, error: funcError } = await supabase.functions.invoke("confirm-booking", {
+        body: { booking_id: data.id }
+      });
+      if (!funcError) {
+        console.log(`📧 Confirmation email status → Client: ${funcData?.client_email_sent}, Admin: ${funcData?.admin_email_sent}`);
+      }
+    } catch (err) {
+      console.error("Failed to invoke confirm-booking function:", err);
+    }
+    
     setStatus("success");
   }
 
@@ -116,7 +138,7 @@ export function DemoModal({ open, onClose }: Props) {
               <h3 className="text-xl font-semibold">You're booked!</h3>
               <p className="text-sm text-muted-foreground max-w-xs">
                 We've received your request for <strong className="text-foreground">{form.date}</strong> at <strong className="text-foreground">{form.time}</strong>.
-                A confirmation will be sent to <strong className="text-foreground">{form.email}</strong>.
+                A confirmation has been sent to <strong className="text-foreground">{form.email}</strong>.
               </p>
               <button
                 onClick={onClose}

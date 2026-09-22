@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, ArrowLeft, KeyRound, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 function GoogleIcon() {
@@ -21,18 +21,47 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const [authMode, setAuthMode] = useState<"password" | "otp">("password");
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
+  const [otpToken, setOtpToken] = useState("");
+  const [otpSent, setOtpSent]   = useState(false);
   const [showPw, setShowPw]     = useState(false);
-  const [status, setStatus]     = useState<"idle" | "loading" | "google" | "error">("idle");
+  const [status, setStatus]     = useState<"idle" | "loading" | "google" | "otp-sending" | "error" | "info">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [infoMsg, setInfoMsg]   = useState("");
   const authInProgress = useRef(false);
-  // Track whether the user has actively started an auth action in this session.
-  // Without this flag, onAuthStateChange fires SIGNED_IN for any existing
-  // cached session the moment the listener is attached, causing an immediate
-  // redirect even before the user clicks anything.
+
   useEffect(() => {
-    // If the user already has an active session, send them straight to dashboard
+    // 1. Check for OAuth redirect errors in URL query or hash
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      
+      const rawError = searchParams.get("error_description") ||
+                       searchParams.get("error") ||
+                       hashParams.get("error_description") ||
+                       hashParams.get("error");
+                       
+      if (rawError) {
+        setStatus("error");
+        const cleanErr = decodeURIComponent(rawError.replace(/\+/g, " "));
+        if (cleanErr.toLowerCase().includes("redirect url not allowed") || cleanErr.toLowerCase().includes("redirect_uri_not_allowed")) {
+          setErrorMsg(
+            `Google Sign-In Error: Redirect URL not allowed. In your Supabase Dashboard -> Authentication -> URL Configuration -> Redirect URLs, please add: ${window.location.origin}/** and ${window.location.origin}/dashboard`
+          );
+        } else if (cleanErr.toLowerCase().includes("access_denied")) {
+          setErrorMsg(
+            "Google Sign-In Error: Access was denied by Google. If your OAuth app in Google Cloud Console is in 'Testing' mode, your Google email must be added to the 'Test Users' list."
+          );
+        } else {
+          setErrorMsg(`Google Sign-In Error: ${cleanErr}`);
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
+    // 2. If the user already has an active session, send them straight to dashboard
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         navigate({ to: "/dashboard" });
@@ -40,7 +69,7 @@ function LoginPage() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
+      if (event === "SIGNED_IN" && session?.user) {
         navigate({ to: "/dashboard" });
       }
     });
@@ -49,23 +78,104 @@ function LoginPage() {
 
   async function handleGoogle() {
     setStatus("google");
+    setErrorMsg("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/dashboard` },
     });
-    if (error) { setStatus("error"); setErrorMsg(error.message); }
+    if (error) {
+      setStatus("error");
+      setErrorMsg(error.message);
+    }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handlePasswordLogin(e: React.FormEvent) {
     e.preventDefault();
+    if (!email || !password) {
+      setStatus("error");
+      setErrorMsg("Please enter both email and password.");
+      return;
+    }
     authInProgress.current = true;
     setStatus("loading");
+    setErrorMsg("");
+    setInfoMsg("");
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { authInProgress.current = false; setStatus("error"); setErrorMsg(error.message); return; }
+    if (error) {
+      authInProgress.current = false;
+      setStatus("error");
+      if (error.message.toLowerCase().includes("email not confirmed")) {
+        setErrorMsg("Email not confirmed yet. Please verify your email inbox or use Google Sign-In.");
+      } else if (error.message.toLowerCase().includes("invalid login credentials")) {
+        setErrorMsg("Invalid email or password. Please check your credentials or sign up.");
+      } else {
+        setErrorMsg(error.message);
+      }
+      return;
+    }
     navigate({ to: "/dashboard" });
   }
 
-  const busy = status === "loading" || status === "google";
+  async function handleSendOtp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) {
+      setStatus("error");
+      setErrorMsg("Please enter your email address to receive an OTP.");
+      return;
+    }
+    setStatus("otp-sending");
+    setErrorMsg("");
+    setInfoMsg("");
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+
+    if (error) {
+      setStatus("error");
+      if (error.message.toLowerCase().includes("rate limit") || error.status === 429) {
+        setErrorMsg("Email send rate limit reached on Supabase. Please use 'Continue with Google' or password login.");
+      } else {
+        setErrorMsg(error.message);
+      }
+      return;
+    }
+
+    setOtpSent(true);
+    setStatus("info");
+    setInfoMsg(`We sent a login code/link to ${email}. Check your inbox and enter the code below.`);
+  }
+
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!otpToken) {
+      setStatus("error");
+      setErrorMsg("Please enter the OTP verification code.");
+      return;
+    }
+    setStatus("loading");
+    setErrorMsg("");
+
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: otpToken.trim(),
+      type: "email",
+    });
+
+    if (error) {
+      setStatus("error");
+      setErrorMsg(error.message);
+      return;
+    }
+
+    navigate({ to: "/dashboard" });
+  }
+
+  const busy = status === "loading" || status === "google" || status === "otp-sending";
 
   return (
     <div style={{
@@ -80,7 +190,7 @@ function LoginPage() {
       <div style={{
         width: "100%",
         maxWidth: "960px",
-        minHeight: "600px",
+        minHeight: "620px",
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
         background: "#0d1120",
@@ -91,136 +201,315 @@ function LoginPage() {
         className="login-wrap"
       >
         {/* ── LEFT: Form ── */}
-        <div style={{ padding: "56px 48px", display: "flex", flexDirection: "column", justifyContent: "center" }}
+        <div style={{ padding: "48px 44px", display: "flex", flexDirection: "column", justifyContent: "center" }}
           className="login-form-side"
         >
-          {/* Brand mark */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "48px" }}>
-            <div style={{
-              width: "32px", height: "32px", borderRadius: "9px",
-              background: "#4361ee", display: "flex", alignItems: "center",
-              justifyContent: "center", color: "white", fontWeight: 700, fontSize: "15px",
-            }}>CX</div>
-            <span style={{ color: "#f5f6fa", fontWeight: 700, fontSize: "16px" }}>ConnectXpert</span>
+          {/* Top navigation row: Logo & Back to Main Page */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "36px" }}>
+            <Link to="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+              <div style={{
+                width: "32px", height: "32px", borderRadius: "9px",
+                background: "#4361ee", display: "flex", alignItems: "center",
+                justifyContent: "center", color: "white", fontWeight: 700, fontSize: "15px",
+              }}>CX</div>
+              <span style={{ color: "#f5f6fa", fontWeight: 700, fontSize: "16px" }}>ConnectXpert</span>
+            </Link>
+
+            <Link
+              to="/"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                color: "#8890a8", fontSize: "13px", textDecoration: "none",
+                transition: "color .2s",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#f5f6fa")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#8890a8")}
+            >
+              <ArrowLeft size={14} /> Back to Website
+            </Link>
           </div>
 
-          <h1 style={{ color: "#f5f6fa", fontSize: "32px", fontWeight: 700, letterSpacing: "-0.5px" }}>
+          <h1 style={{ color: "#f5f6fa", fontSize: "28px", fontWeight: 700, letterSpacing: "-0.5px" }}>
             Welcome back
           </h1>
-          <p style={{ color: "#8890a8", fontSize: "14.5px", marginTop: "8px", marginBottom: "36px" }}>
-            Log in to manage your dashboard
+          <p style={{ color: "#8890a8", fontSize: "14px", marginTop: "6px", marginBottom: "28px" }}>
+            Sign in with Google, Password, or Email OTP
           </p>
 
-          {/* Google */}
+          {/* Real Google OAuth */}
           <button
             type="button"
             onClick={handleGoogle}
             disabled={busy}
             style={{
               width: "100%", padding: "12px", border: "1px solid #2a3050",
-              borderRadius: "10px", background: "transparent", color: "#f5f6fa",
+              borderRadius: "10px", background: "rgba(255, 255, 255, 0.03)", color: "#f5f6fa",
               fontSize: "14px", fontWeight: 500, cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
               marginBottom: "20px", transition: "border-color .2s, background .2s",
               opacity: busy ? 0.6 : 1,
             }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = "#4361ee")}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = "#2a3050")}
+            onMouseEnter={e => {
+              if (!busy) {
+                e.currentTarget.style.borderColor = "#4361ee";
+                e.currentTarget.style.background = "rgba(67, 97, 238, 0.08)";
+              }
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = "#2a3050";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)";
+            }}
           >
             {status === "google" ? <Loader2 className="size-4 animate-spin" /> : <GoogleIcon />}
             Continue with Google
           </button>
 
-          {/* Divider */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-            <div style={{ flex: 1, height: "1px", background: "#2a3050" }} />
-            <span style={{ color: "#4a5170", fontSize: "12px" }}>or</span>
-            <div style={{ flex: 1, height: "1px", background: "#2a3050" }} />
+          {/* Global Error Banner */}
+          {errorMsg && (
+            <div style={{
+              color: "#f87171", fontSize: "13px", marginBottom: "20px",
+              background: "rgba(239, 68, 68, 0.12)", padding: "12px 16px",
+              borderRadius: "10px", border: "1px solid rgba(239, 68, 68, 0.3)",
+              lineHeight: 1.5, display: "flex", alignItems: "flex-start", gap: "8px"
+            }}>
+              <span style={{ fontSize: "16px", lineHeight: 1 }}>⚠️</span>
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          {/* Auth Mode Tabs: Password vs OTP */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "1fr 1fr",
+            background: "#080b15", borderRadius: "10px", padding: "3px",
+            marginBottom: "22px", border: "1px solid #1f2540",
+          }}>
+            <button
+              type="button"
+              onClick={() => { setAuthMode("password"); setErrorMsg(""); }}
+              style={{
+                padding: "8px", borderRadius: "8px", border: "none",
+                background: authMode === "password" ? "#1f2540" : "transparent",
+                color: authMode === "password" ? "#f5f6fa" : "#8890a8",
+                fontSize: "13px", fontWeight: 600, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                transition: "all .2s",
+              }}
+            >
+              <KeyRound size={14} /> Password
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMode("otp"); setErrorMsg(""); }}
+              style={{
+                padding: "8px", borderRadius: "8px", border: "none",
+                background: authMode === "otp" ? "#1f2540" : "transparent",
+                color: authMode === "otp" ? "#f5f6fa" : "#8890a8",
+                fontSize: "13px", fontWeight: 600, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                transition: "all .2s",
+              }}
+            >
+              <Mail size={14} /> Email OTP
+            </button>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate>
-            {/* Email */}
-            <div style={{ marginBottom: "26px", position: "relative" }}>
-              <label style={{ display: "block", color: "#8890a8", fontSize: "12.5px", marginBottom: "8px" }}>
-                Email
-              </label>
-              <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="you@company.com" required
-                style={{
-                  width: "100%", background: "transparent", border: "none",
-                  borderBottom: "1px solid #2a3050", color: "#f5f6fa",
-                  fontSize: "15px", padding: "6px 30px 10px 0", outline: "none",
-                }}
-                onFocus={e => (e.currentTarget.style.borderBottomColor = "#4361ee")}
-                onBlur={e => (e.currentTarget.style.borderBottomColor = "#2a3050")}
-              />
-            </div>
+          {/* ── Mode A: Password Form ── */}
+          {authMode === "password" && (
+            <form onSubmit={handlePasswordLogin} noValidate>
+              {/* Email */}
+              <div style={{ marginBottom: "22px", position: "relative" }}>
+                <label style={{ display: "block", color: "#8890a8", fontSize: "12.5px", marginBottom: "6px" }}>
+                  Email
+                </label>
+                <input
+                  type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="you@company.com" required
+                  style={{
+                    width: "100%", background: "transparent", border: "none",
+                    borderBottom: "1px solid #2a3050", color: "#f5f6fa",
+                    fontSize: "15px", padding: "6px 30px 10px 0", outline: "none",
+                  }}
+                  onFocus={e => (e.currentTarget.style.borderBottomColor = "#4361ee")}
+                  onBlur={e => (e.currentTarget.style.borderBottomColor = "#2a3050")}
+                />
+              </div>
 
-            {/* Password */}
-            <div style={{ marginBottom: "10px", position: "relative" }}>
-              <label style={{ display: "block", color: "#8890a8", fontSize: "12.5px", marginBottom: "8px" }}>
-                Password
-              </label>
-              <input
-                type={showPw ? "text" : "password"} value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Enter your password" required
-                style={{
-                  width: "100%", background: "transparent", border: "none",
-                  borderBottom: "1px solid #2a3050", color: "#f5f6fa",
-                  fontSize: "15px", padding: "6px 30px 10px 0", outline: "none",
-                }}
-                onFocus={e => (e.currentTarget.style.borderBottomColor = "#4361ee")}
-                onBlur={e => (e.currentTarget.style.borderBottomColor = "#2a3050")}
-              />
+              {/* Password */}
+              <div style={{ marginBottom: "10px", position: "relative" }}>
+                <label style={{ display: "block", color: "#8890a8", fontSize: "12.5px", marginBottom: "6px" }}>
+                  Password
+                </label>
+                <input
+                  type={showPw ? "text" : "password"} value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Enter your password" required
+                  style={{
+                    width: "100%", background: "transparent", border: "none",
+                    borderBottom: "1px solid #2a3050", color: "#f5f6fa",
+                    fontSize: "15px", padding: "6px 30px 10px 0", outline: "none",
+                  }}
+                  onFocus={e => (e.currentTarget.style.borderBottomColor = "#4361ee")}
+                  onBlur={e => (e.currentTarget.style.borderBottomColor = "#2a3050")}
+                />
+                <button
+                  type="button" onClick={() => setShowPw(v => !v)}
+                  style={{
+                    position: "absolute", right: 0, bottom: "10px",
+                    background: "none", border: "none", cursor: "pointer",
+                    color: "#8890a8", display: "flex", alignItems: "center",
+                  }}
+                >
+                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              {/* Forgot */}
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "22px" }}>
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode("otp"); }}
+                  style={{ color: "#4361ee", fontSize: "13px", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                >
+                  Forgot password? Use OTP
+                </button>
+              </div>
+
+              {/* Error */}
+              {status === "error" && (
+                <div style={{ color: "#f87171", fontSize: "13px", marginBottom: "16px", background: "#ef444415", padding: "10px 14px", borderRadius: "8px", border: "1px solid #ef444430", lineHeight: 1.4 }}>
+                  {errorMsg}
+                </div>
+              )}
+
+              {/* Submit */}
               <button
-                type="button" onClick={() => setShowPw(v => !v)}
+                type="submit" disabled={busy}
                 style={{
-                  position: "absolute", right: 0, bottom: "12px",
-                  background: "none", border: "none", cursor: "pointer",
-                  color: "#8890a8", display: "flex", alignItems: "center",
+                  width: "100%", padding: "13px", border: "none",
+                  borderRadius: "10px", background: "#4361ee", color: "white",
+                  fontSize: "15px", fontWeight: 600, cursor: busy ? "not-allowed" : "pointer",
+                  opacity: busy ? 0.7 : 1,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                  transition: "background .2s",
                 }}
+                onMouseEnter={e => !busy && (e.currentTarget.style.background = "#3652d4")}
+                onMouseLeave={e => (e.currentTarget.style.background = "#4361ee")}
               >
-                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+                {status === "loading" && <Loader2 className="size-4 animate-spin" />}
+                Log in
               </button>
+            </form>
+          )}
+
+          {/* ── Mode B: OTP Form ── */}
+          {authMode === "otp" && (
+            <div>
+              {!otpSent ? (
+                <form onSubmit={handleSendOtp} noValidate>
+                  <div style={{ marginBottom: "22px", position: "relative" }}>
+                    <label style={{ display: "block", color: "#8890a8", fontSize: "12.5px", marginBottom: "6px" }}>
+                      Email Address
+                    </label>
+                    <input
+                      type="email" value={email} onChange={e => setEmail(e.target.value)}
+                      placeholder="you@company.com" required
+                      style={{
+                        width: "100%", background: "transparent", border: "none",
+                        borderBottom: "1px solid #2a3050", color: "#f5f6fa",
+                        fontSize: "15px", padding: "6px 30px 10px 0", outline: "none",
+                      }}
+                      onFocus={e => (e.currentTarget.style.borderBottomColor = "#4361ee")}
+                      onBlur={e => (e.currentTarget.style.borderBottomColor = "#2a3050")}
+                    />
+                  </div>
+
+                  {status === "error" && (
+                    <div style={{ color: "#f87171", fontSize: "13px", marginBottom: "16px", background: "#ef444415", padding: "10px 14px", borderRadius: "8px", border: "1px solid #ef444430", lineHeight: 1.4 }}>
+                      {errorMsg}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit" disabled={busy}
+                    style={{
+                      width: "100%", padding: "13px", border: "none",
+                      borderRadius: "10px", background: "#4361ee", color: "white",
+                      fontSize: "15px", fontWeight: 600, cursor: busy ? "not-allowed" : "pointer",
+                      opacity: busy ? 0.7 : 1,
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                      transition: "background .2s",
+                    }}
+                    onMouseEnter={e => !busy && (e.currentTarget.style.background = "#3652d4")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "#4361ee")}
+                  >
+                    {status === "otp-sending" && <Loader2 className="size-4 animate-spin" />}
+                    Send Login Code
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyOtp} noValidate>
+                  {infoMsg && (
+                    <div style={{ color: "#60a5fa", fontSize: "13px", marginBottom: "18px", background: "#3b82f615", padding: "10px 14px", borderRadius: "8px", border: "1px solid #3b82f630", lineHeight: 1.4 }}>
+                      {infoMsg}
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: "22px", position: "relative" }}>
+                    <label style={{ display: "block", color: "#8890a8", fontSize: "12.5px", marginBottom: "6px" }}>
+                      Enter 6 or 8-digit Code
+                    </label>
+                    <input
+                      type="text" value={otpToken} onChange={e => setOtpToken(e.target.value)}
+                      placeholder="e.g. 12345678" required autoFocus
+                      style={{
+                        width: "100%", background: "transparent", border: "none",
+                        borderBottom: "1px solid #2a3050", color: "#f5f6fa",
+                        fontSize: "18px", letterSpacing: "4px", padding: "6px 30px 10px 0", outline: "none",
+                      }}
+                      onFocus={e => (e.currentTarget.style.borderBottomColor = "#4361ee")}
+                      onBlur={e => (e.currentTarget.style.borderBottomColor = "#2a3050")}
+                    />
+                  </div>
+
+                  {status === "error" && (
+                    <div style={{ color: "#f87171", fontSize: "13px", marginBottom: "16px", background: "#ef444415", padding: "10px 14px", borderRadius: "8px", border: "1px solid #ef444430", lineHeight: 1.4 }}>
+                      {errorMsg}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit" disabled={busy}
+                    style={{
+                      width: "100%", padding: "13px", border: "none",
+                      borderRadius: "10px", background: "#4361ee", color: "white",
+                      fontSize: "15px", fontWeight: 600, cursor: busy ? "not-allowed" : "pointer",
+                      opacity: busy ? 0.7 : 1,
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                      transition: "background .2s",
+                    }}
+                    onMouseEnter={e => !busy && (e.currentTarget.style.background = "#3652d4")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "#4361ee")}
+                  >
+                    {status === "loading" && <Loader2 className="size-4 animate-spin" />}
+                    Verify & Sign In
+                  </button>
+
+                  <div style={{ marginTop: "14px", textAlign: "center" }}>
+                    <button
+                      type="button"
+                      onClick={() => { setOtpSent(false); setErrorMsg(""); }}
+                      style={{ color: "#8890a8", fontSize: "13px", background: "none", border: "none", cursor: "pointer" }}
+                    >
+                      Resend code or use different email
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
-
-            {/* Forgot */}
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-4px", marginBottom: "28px" }}>
-              <a href="#" style={{ color: "#4361ee", fontSize: "13px", textDecoration: "none" }}>
-                Forgot password?
-              </a>
-            </div>
-
-            {/* Error */}
-            {status === "error" && (
-              <p style={{ color: "#f87171", fontSize: "13px", marginBottom: "14px", background: "#ef444415", padding: "8px 12px", borderRadius: "8px", border: "1px solid #ef444430" }}>
-                {errorMsg}
-              </p>
-            )}
-
-            {/* Submit */}
-            <button
-              type="submit" disabled={busy}
-              style={{
-                width: "100%", padding: "14px", border: "none",
-                borderRadius: "10px", background: "#4361ee", color: "white",
-                fontSize: "15px", fontWeight: 600, cursor: busy ? "not-allowed" : "pointer",
-                opacity: busy ? 0.7 : 1,
-                display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                transition: "background .2s",
-              }}
-              onMouseEnter={e => !busy && (e.currentTarget.style.background = "#3652d4")}
-              onMouseLeave={e => (e.currentTarget.style.background = "#4361ee")}
-            >
-              {status === "loading" && <Loader2 className="size-4 animate-spin" />}
-              Log in
-            </button>
-          </form>
+          )}
 
           {/* Sign up link */}
-          <div style={{ marginTop: "32px", fontSize: "13.5px", color: "#8890a8", display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ marginTop: "28px", fontSize: "13.5px", color: "#8890a8", display: "flex", alignItems: "center", gap: "10px" }}>
             Don't have an account?
             <Link
               to="/signup"
@@ -241,7 +530,7 @@ function LoginPage() {
           style={{
             position: "relative",
             background: "linear-gradient(160deg, #141a35, #1c2650)",
-            padding: "56px 48px",
+            padding: "48px 44px",
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
@@ -264,7 +553,7 @@ function LoginPage() {
           }} />
 
           <h2 style={{
-            color: "#f5f6fa", fontSize: "34px", lineHeight: 1.25,
+            color: "#f5f6fa", fontSize: "32px", lineHeight: 1.25,
             fontWeight: 700, letterSpacing: "-0.5px", position: "relative", zIndex: 1,
           }}>
             Sell, hire, and scale —<br />all from one login.
@@ -277,8 +566,8 @@ function LoginPage() {
           </p>
 
           {/* Illustration */}
-          <div style={{ marginTop: "40px", position: "relative", zIndex: 1 }}>
-            <svg viewBox="0 0 320 200" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+          <div style={{ marginTop: "36px", position: "relative", zIndex: 1 }}>
+            <svg viewBox="0 0 320 200" style={{ width: "100%", height: "auto" }} xmlns="http://www.w3.org/2000/svg">
               <rect x="30" y="40" width="180" height="120" rx="12" fill="#ffffff0f" stroke="#4361ee55"/>
               <rect x="46" y="58" width="90" height="10" rx="5" fill="#4361ee88"/>
               <rect x="46" y="78" width="140" height="8" rx="4" fill="#ffffff22"/>
@@ -295,10 +584,9 @@ function LoginPage() {
           <div style={{
             display: "inline-flex", alignItems: "center", gap: "8px",
             background: "#ffffff0d", border: "1px solid #ffffff1a",
-            padding: "8px 14px", borderRadius: "100px", marginTop: "28px",
+            padding: "8px 14px", borderRadius: "100px", marginTop: "24px",
             position: "relative", zIndex: 1, width: "fit-content",
           }}>
-            {/* Avatars */}
             <div style={{ display: "flex" }}>
               {[
                 { letter: "A", color: "#ef4c6a" },
@@ -316,7 +604,7 @@ function LoginPage() {
               ))}
             </div>
             <span style={{ color: "#8890a8", fontSize: "12.5px" }}>
-              Join <strong style={{ color: "#f5f6fa" }}>15,725+</strong> growing businesses
+              Direct access to <strong style={{ color: "#f5f6fa" }}>vetted specialists</strong>
             </span>
           </div>
         </div>

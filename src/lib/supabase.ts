@@ -1,12 +1,27 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true },
-  realtime: { params: { eventsPerSecond: 10 } },
-});
+// Singleton to prevent multiple client instances during HMR / SSR
+const globalForSupabase = globalThis as unknown as { supabaseClient?: SupabaseClient };
+
+export const supabase =
+  globalForSupabase.supabaseClient ??
+  createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: "pkce",
+    },
+    realtime: { params: { eventsPerSecond: 10 } },
+  });
+
+if (typeof window !== "undefined") {
+  globalForSupabase.supabaseClient = supabase;
+}
+
 
 // ── Existing types ─────────────────────────────────────────────
 
@@ -39,6 +54,21 @@ export interface ServiceRow {
 }
 
 // ── New ConnectXpert types ─────────────────────────────────────
+
+export interface CaseStudyRow {
+  id?: string;
+  slug: string;
+  client: string;
+  industry: string;
+  tag: string;
+  problem: string;
+  solution: string;
+  outcome: string;
+  metrics: string[];
+  color: string;
+  featured?: boolean;
+  created_at?: string;
+}
 
 export interface CategoryRow {
   id: string;
@@ -182,7 +212,41 @@ export async function trackEvent(
 
 export const SEED_EXPERTS: Omit<ExpertRow, "id">[] = [
   {
+    name: "Ananya Deshmukh", title: "Salesforce Certified Technical Architect (CTA)", category_id: "tech",
+    photo_url: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=600&h=600",
+    bio: "12+ years deploying enterprise-scale Salesforce implementations. Salesforce CTA with deep mastery of Sales Cloud, Service Cloud, CPQ, Data Cloud, and MuleSoft integrations for Fortune 500 SaaS.",
+    skills: ["Salesforce CTA", "Salesforce CPQ", "Data Cloud", "MuleSoft", "Apex / LWC", "CRM Migration"],
+    hourly_rate: 210, is_verified: true, average_rating: 4.95, review_count: 58, total_bookings: 165,
+    status: "active", years_experience: 12, languages: ["English", "Hindi", "Marathi"],
+    offers_free_intro: true, intro_call_duration: 15,
+    last_active_at: new Date(Date.now() - 3 * 60000).toISOString(),
+    avg_response_time_minutes: 8,
+  },
+  {
+    name: "Sanjay Krishnan", title: "TCS Enterprise Cloud Transformation Director", category_id: "tech",
+    photo_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=600&h=600",
+    bio: "14+ years architecting Fortune 500 digital transformations at TCS and AWS. Led 40+ large-scale legacy core-to-cloud migrations, TCS BaNCS integrations, and zero-trust cloud architectures.",
+    skills: ["TCS Enterprise Cloud", "Cloud Migration", "AWS Architecture", "TCS BaNCS", "Kubernetes", "Disaster Recovery"],
+    hourly_rate: 195, is_verified: true, average_rating: 4.9, review_count: 48, total_bookings: 130,
+    status: "active", years_experience: 14, languages: ["English", "Tamil", "Hindi"],
+    offers_free_intro: true, intro_call_duration: 15,
+    last_active_at: new Date(Date.now() - 5 * 60000).toISOString(),
+    avg_response_time_minutes: 12,
+  },
+  {
+    name: "Dr. Amitav Roy", title: "Principal AI Scientist & Kaggle Grandmaster", category_id: "tech",
+    photo_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600&h=600",
+    bio: "Top 0.1% Kaggle Grandmaster, Ex-DeepMind & TCS Innovation Labs AI Lead. Specializing in LLM fine-tuning, RAG enterprise pipelines, and high-throughput PyTorch/JAX models.",
+    skills: ["Generative AI", "LLMs", "RAG Pipelines", "PyTorch", "MLOps", "Computer Vision"],
+    hourly_rate: 220, is_verified: true, average_rating: 5.0, review_count: 52, total_bookings: 140,
+    status: "active", years_experience: 11, languages: ["English", "Hindi", "Bengali"],
+    offers_free_intro: true, intro_call_duration: 15,
+    last_active_at: new Date(Date.now() - 1 * 60000).toISOString(),
+    avg_response_time_minutes: 10,
+  },
+  {
     name: "Sarah Chen", title: "Business Strategy Consultant", category_id: "business",
+    photo_url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600&h=600",
     bio: "10+ years helping startups and SMEs define strategy, enter new markets, and scale operations. Ex-McKinsey, MBA from INSEAD.",
     skills: ["Business Strategy","Go-to-Market","OKRs","Market Entry","Fundraising"],
     hourly_rate: 150, is_verified: true, average_rating: 4.9, review_count: 47, total_bookings: 112,
@@ -193,6 +257,7 @@ export const SEED_EXPERTS: Omit<ExpertRow, "id">[] = [
   },
   {
     name: "Rahul Sharma", title: "Full-Stack & Cloud Architect", category_id: "tech",
+    photo_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=600&h=600",
     bio: "Senior engineer with 8 years building scalable systems on AWS/GCP. Specialises in microservices, React, Node.js and DevOps.",
     skills: ["React","Node.js","AWS","System Design","DevOps","TypeScript"],
     hourly_rate: 120, is_verified: true, average_rating: 4.8, review_count: 38, total_bookings: 89,
@@ -203,6 +268,7 @@ export const SEED_EXPERTS: Omit<ExpertRow, "id">[] = [
   },
   {
     name: "Priya Nair", title: "Growth Marketing Specialist", category_id: "marketing",
+    photo_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=600&h=600",
     bio: "Performance marketer who has scaled B2B SaaS from 0 to $5M ARR. Expert in SEO, paid acquisition, and email automation.",
     skills: ["SEO","Google Ads","HubSpot","Content Strategy","Email Marketing","Analytics"],
     hourly_rate: 95, is_verified: true, average_rating: 4.7, review_count: 29, total_bookings: 67,
@@ -213,6 +279,7 @@ export const SEED_EXPERTS: Omit<ExpertRow, "id">[] = [
   },
   {
     name: "James Okafor", title: "Corporate & Startup Lawyer", category_id: "legal",
+    photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=600&h=600",
     bio: "Startup-focused attorney covering fundraising docs, employment law, IP protection, and SaaS contracts. 200+ clients served.",
     skills: ["Contract Law","IP Protection","Term Sheets","Employment Law","GDPR","NDAs"],
     hourly_rate: 200, is_verified: true, average_rating: 4.9, review_count: 61, total_bookings: 145,
@@ -222,17 +289,8 @@ export const SEED_EXPERTS: Omit<ExpertRow, "id">[] = [
     avg_response_time_minutes: 45,
   },
   {
-    name: "Anika Patel", title: "Product & UX Designer", category_id: "design",
-    bio: "Senior product designer with a background in user research and design systems. Helped 30+ products ship better experiences.",
-    skills: ["Figma","Design Systems","User Research","Prototyping","Accessibility","Branding"],
-    hourly_rate: 85, is_verified: false, average_rating: 4.6, review_count: 22, total_bookings: 44,
-    status: "active", years_experience: 5, languages: ["English","Gujarati"],
-    offers_free_intro: true, intro_call_duration: 15,
-    last_active_at: new Date(Date.now() - 45 * 60000).toISOString(),
-    avg_response_time_minutes: 90,
-  },
-  {
     name: "David Kim", title: "CFO & Financial Advisor", category_id: "finance",
+    photo_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=600&h=600",
     bio: "Fractional CFO with expertise in fundraising, financial modeling, cap table management, and M&A advisory for growth-stage companies.",
     skills: ["Financial Modeling","Fundraising","Cap Tables","M&A","Forecasting","Unit Economics"],
     hourly_rate: 175, is_verified: true, average_rating: 4.8, review_count: 35, total_bookings: 78,
@@ -242,3 +300,4 @@ export const SEED_EXPERTS: Omit<ExpertRow, "id">[] = [
     avg_response_time_minutes: 120,
   },
 ];
+

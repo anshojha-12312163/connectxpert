@@ -95,7 +95,7 @@ function ContactPanel({ contact, onClose, onUpdate }: {
 
       {/* Actions */}
       <div className="border-t border-white/[0.06] px-5 py-4 space-y-2">
-        <a href={`mailto:${contact.email}?subject=Re: Your message to Ansh Consultancy`}
+        <a href={`mailto:${contact.email}?subject=Re: Your message to ConnectXpert`}
           onClick={() => setStatus("replied")}
           className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.01]"
           style={{ background: "var(--gradient-primary)" }}>
@@ -266,7 +266,7 @@ function ContactsPage() {
                         </td>
                         <td className="px-4 py-3.5" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-1.5">
-                            <a href={`mailto:${c.email}?subject=Re: Your message to Ansh Consultancy`}
+                            <a href={`mailto:${c.email}?subject=Re: Your message to ConnectXpert`}
                               onClick={async () => { await supabase.from("contacts").update({ contact_status:"replied" }).eq("id", c.id); handleUpdate(c.id, "replied"); }}
                               className="rounded-lg bg-blue-500/15 border border-blue-500/30 px-2.5 py-1 text-[10px] font-semibold text-blue-400 hover:bg-blue-500/25 transition-colors whitespace-nowrap">
                               Reply

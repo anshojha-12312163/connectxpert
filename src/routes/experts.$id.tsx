@@ -176,7 +176,10 @@ interface TimeSlotsProps {
 }
 
 function TimeSlots({ date, slots, loading, selectedTime, onSelectTime }: TimeSlotsProps) {
-  const [y, mo, d] = date.split("-").map(Number);
+  const parts = date.split("-").map(Number);
+  const y = parts[0] ?? 2026;
+  const mo = parts[1] ?? 1;
+  const d = parts[2] ?? 1;
   const displayDate = new Date(y, mo-1, d).toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" });
 
   return (
@@ -274,7 +277,8 @@ function ExpertProfilePage() {
       setAvailDays(new Set(avail.map(a => a.day_of_week)));
 
       const now = new Date();
-      const fb = await fetchFullyBookedDates(now.getFullYear(), now.getMonth()+1, SESSION_PRICING[selectedSession].duration || 60);
+      const dur = SESSION_PRICING[selectedSession]?.duration || 60;
+      const fb = await fetchFullyBookedDates(now.getFullYear(), now.getMonth()+1, dur);
       setFullyBooked(fb);
 
       setLoading(false);
@@ -287,7 +291,7 @@ function ExpertProfilePage() {
     if (!selectedDate) return;
     setSlotsLoading(true);
     setSelectedTime(null);
-    const dur = SESSION_PRICING[selectedSession].duration || 60;
+    const dur = SESSION_PRICING[selectedSession]?.duration || 60;
     fetchSlotsForDate(selectedDate, dur).then(s => {
       setSlots(s);
       setSlotsLoading(false);
@@ -349,7 +353,7 @@ function ExpertProfilePage() {
               <div className="rounded-2xl border border-white/[0.06] p-6 text-center" style={{ background: "#131824" }}>
                 {/* Avatar + status */}
                 <div className="relative inline-block mb-4">
-                  <Avatar name={expert.name} src={expert.photo_url} size={88} />
+                  <Avatar name={expert.name} {...(expert.photo_url ? { src: expert.photo_url } : {})} size={88} />
                   <StatusDot status={status} className="absolute -bottom-1 -right-1 size-4 border-[3px] border-[#131824]" />
                 </div>
 
@@ -571,14 +575,14 @@ function ExpertProfilePage() {
                       <div>
                         <p className="text-xs text-white/40 mb-0.5">Selected</p>
                         <p className="text-sm font-semibold text-white">
-                          {selectedSlot.label} · {formatTime(selectedTime!)}
+                          {selectedSlot?.label ?? "Session"} · {formatTime(selectedTime!)}
                         </p>
                         <p className="text-xs text-white/40">
                           {new Date(...(selectedDate.split("-").map(Number) as [number, number, number]).map((n,i) => i===1 ? n-1 : n) as [number,number,number]).toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" })}
                         </p>
                       </div>
-                      <span className={cn("text-lg font-bold", selectedSlot.price === "Free" ? "text-green-400" : "text-white")}>
-                        {selectedSlot.price}
+                      <span className={cn("text-lg font-bold", selectedSlot?.price === "Free" ? "text-green-400" : "text-white")}>
+                        {selectedSlot?.price ?? ""}
                       </span>
                     </div>
                     <Link

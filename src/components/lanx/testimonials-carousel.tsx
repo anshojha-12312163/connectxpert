@@ -1,71 +1,56 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { SectionHeading, Avatar } from "./bits";
 import { cn } from "@/lib/utils";
 
-const testimonials = [
+import { supabase } from "@/lib/supabase";
+
+// Fallback testimonials while loading or if none exist
+const defaultTestimonials = [
   {
     name: "Sarah Mitchell",
-    company: "NovaTech Inc.",
-    role: "CEO",
-    quote:
-      "Ansh Consultancy helped us triple our inbound leads in under 90 days. The strategy was precise, actionable, and actually worked. I recommend them to every founder I know.",
+    quote: "ConnectXpert helped us triple our inbound lead velocity in under 90 days. The specialist matching was instant, precise, and highly impactful.",
     rating: 5,
-  },
-  {
-    name: "James Okafor",
-    company: "Skyline Ventures",
-    role: "Founder",
-    quote:
-      "We hired three senior engineers through their talent pipeline in two weeks. The quality was exceptional and the process was completely hands-off for us. Incredible service.",
-    rating: 5,
-  },
-  {
-    name: "Priya Sharma",
-    company: "Dune Analytics",
-    role: "COO",
-    quote:
-      "Their market insights reports gave us the confidence to enter two new verticals. The data was fresh, relevant, and immediately actionable. Worth every penny.",
-    rating: 5,
-  },
-  {
-    name: "Lucas Fernandez",
-    company: "Opal Digital",
-    role: "Head of Growth",
-    quote:
-      "From strategy to execution, Ansh Consultancy was with us every step. They don't just give advice — they roll up their sleeves and build alongside you.",
-    rating: 5,
-  },
-  {
-    name: "Amara Chen",
-    company: "Kairo Labs",
-    role: "CTO",
-    quote:
-      "The tech advisory engagement transformed how we approach architecture decisions. We shipped 40% faster the quarter after working with them.",
-    rating: 5,
-  },
-  {
-    name: "Ryan Patel",
-    company: "Northwind Group",
-    role: "Managing Director",
-    quote:
-      "Professional, thorough, and genuinely invested in our success. Ansh Consultancy feels like an extension of our leadership team, not an outside vendor.",
-    rating: 5,
-  },
+  }
 ];
 
 export function TestimonialsCarousel() {
   const [idx, setIdx] = useState(0);
-  const count = testimonials.length;
-  const visible = 3;
+  const [reviews, setReviews] = useState<any[]>(defaultTestimonials);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    async function fetchReviews() {
+      const { data } = await supabase
+        .from("reviews")
+        .select("client_name, comment, rating")
+        .eq("is_hidden", false)
+        .limit(10)
+        .order("created_at", { ascending: false });
+      
+      if (data && data.length > 0) {
+        setReviews(data.map(d => ({
+          name: d.client_name,
+          quote: d.comment,
+          rating: d.rating
+        })));
+      }
+      setLoading(false);
+    }
+    fetchReviews();
+  }, []);
+
+  const count = reviews.length;
+  const visible = typeof window !== 'undefined' && window.innerWidth < 768 ? 1 : 3;
 
   const prev = () => setIdx((i) => (i - 1 + count) % count);
   const next = () => setIdx((i) => (i + 1) % count);
 
   const getVisible = () => {
     const items = [];
-    for (let i = 0; i < visible; i++) {
-      items.push(testimonials[(idx + i) % count]);
+    const numVisible = Math.min(visible, count);
+    for (let i = 0; i < numVisible; i++) {
+      items.push(reviews[(idx + i) % count]);
     }
     return items;
   };
@@ -100,7 +85,7 @@ export function TestimonialsCarousel() {
                 <div>
                   <p className="text-sm font-semibold">{t.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {t.role}, {t.company}
+                    Verified Client
                   </p>
                 </div>
               </figcaption>
