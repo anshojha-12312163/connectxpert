@@ -120,28 +120,84 @@ function BookingModal({
     setBusy(false);
   };
 
+  // Helper to generate full meeting invitation text
+  function getInviteText() {
+    const meetingLink = booking.video_room_url || `https://connectxpert.com/dashboard/video/${booking.booking_reference}`;
+    const providerName = meetingLink.includes("meet.google.com")
+      ? "Google Meet"
+      : meetingLink.includes("zoom.us")
+      ? "Zoom Video"
+      : "ConnectXpert Live Room";
+
+    return `Hi ${booking.name},
+
+Your consultation session with ConnectXpert / Ansh Consultancy has been scheduled and confirmed.
+
+📅 Date: ${booking.preferred_date || "Confirmed Date"}
+⏰ Time: ${booking.preferred_time || "10:00 AM"} (${booking.timezone || "IST"})
+💼 Track: ${booking.service_name || "Advisory Session"}
+🔖 Reference: ${booking.booking_reference || "CX-REF"}
+🎥 Meeting Platform: ${providerName}
+
+🔗 Join Meeting Link:
+${meetingLink}
+
+📅 Add to Google Calendar:
+${generateGoogleCalendarUrl(booking)}
+
+If you have any questions or need to reschedule, reply directly to this email or message our team.
+
+Best regards,
+Ansh Consultancy / ConnectXpert Advisory Team`;
+  }
+
+  function sendGmailInvite() {
+    const subject = `Consultation Confirmed: ${booking.service_name || "Advisory Session"} - ConnectXpert [${booking.booking_reference}]`;
+    const body = getInviteText();
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(booking.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(gmailUrl, "_blank");
+  }
+
+  function sendDefaultMail() {
+    const subject = `Consultation Confirmed: ${booking.service_name || "Advisory Session"} [${booking.booking_reference}]`;
+    const body = getInviteText();
+    window.location.href = `mailto:${encodeURIComponent(booking.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
+  function sendWhatsAppInvite() {
+    const body = getInviteText();
+    const phone = booking.phone ? booking.phone.replace(/[^0-9]/g, "") : "";
+    const waUrl = phone 
+      ? `https://wa.me/${phone}?text=${encodeURIComponent(body)}`
+      : `https://wa.me/?text=${encodeURIComponent(body)}`;
+    window.open(waUrl, "_blank");
+  }
+
   // Generate meeting room
-  async function generateRoom(type: "connectxpert" | "zoom" | "google_meet") {
+  async function generateRoom(type: "connectxpert" | "zoom" | "google_meet", customUrl?: string) {
     setRoomBusy(true);
     try {
-      let roomUrl = "";
+      let roomUrl = customUrl || "";
       const roomName = `CX-${booking.booking_reference ?? String(Date.now()).slice(-6)}`;
 
-      if (type === "zoom") {
-        roomUrl = `https://zoom.us/j/${Math.floor(1000000000 + Math.random() * 9000000000)}?pwd=CX${booking.booking_reference ?? "Call"}`;
-      } else if (type === "google_meet") {
-        roomUrl = `https://meet.google.com/${Math.random().toString(36).substring(2, 5)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}`;
-      } else {
-        // Daily / Jitsi WebRTC room
-        roomUrl = `https://meet.jit.si/${roomName.toLowerCase()}`;
+      if (!roomUrl) {
+        if (type === "zoom") {
+          roomUrl = `https://zoom.us/j/${Math.floor(1000000000 + Math.random() * 9000000000)}?pwd=CX${booking.booking_reference ?? "Call"}`;
+        } else if (type === "google_meet") {
+          roomUrl = `https://meet.google.com/${Math.random().toString(36).substring(2, 5)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}`;
+        } else {
+          // Daily / Jitsi WebRTC room
+          roomUrl = `https://meet.jit.si/${roomName.toLowerCase()}`;
+        }
       }
 
       await supabase
         .from("demo_bookings")
-        .update({ video_room_url: roomUrl, video_room_name: roomName })
+        .update({ video_room_url: roomUrl, video_room_name: roomName, status: "confirmed" })
         .eq("id", booking.id);
 
       onRoomCreated(booking.id, roomUrl, roomName);
+      onStatusChange(booking.id, "confirmed");
     } catch (err) {
       console.error("Failed to generate room:", err);
     } finally {
@@ -162,7 +218,7 @@ function BookingModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
       <div
-        className="relative z-10 w-full max-w-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="relative z-10 w-full max-w-2xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         style={{ background: "#131824" }}
       >
         {/* Header */}
@@ -190,8 +246,8 @@ function BookingModal({
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-3.5">
+        <div className="px-6 py-5 space-y-4 max-h-[72vh] overflow-y-auto">
+          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3">
             {[
               { icon: User, label: "Client Name", value: booking.name },
               { icon: Mail, label: "Email Address", value: booking.email },
@@ -210,14 +266,152 @@ function BookingModal({
             ))}
           </div>
 
+          {/* ── Video Room & Live Zoom / Meet Integration ── */}
+          <div
+            className="rounded-2xl border border-blue-500/20 p-4 space-y-3.5"
+            style={{ background: "linear-gradient(135deg, rgba(30, 58, 138, 0.15) 0%, rgba(17, 24, 39, 0.5) 100%)" }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Video className="size-4 text-blue-400" />
+                <span className="text-xs font-bold text-white uppercase tracking-wider">
+                  Google Meet / Zoom / Live Video
+                </span>
+              </div>
+              {currentRoomUrl && (
+                <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+                  {currentRoomUrl.includes("meet.google.com")
+                    ? "Google Meet Active"
+                    : currentRoomUrl.includes("zoom.us")
+                    ? "Zoom Meeting Active"
+                    : "Live Room Active"}
+                </span>
+              )}
+            </div>
+
+            {currentRoomUrl ? (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-white/10 bg-black/40 p-3 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <div className="size-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                    <p className="text-xs font-mono text-blue-300 truncate">{booking.video_room_url}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(booking.video_room_url);
+                      alert("Meeting link copied to clipboard!");
+                    }}
+                    className="rounded-lg bg-white/10 px-2.5 py-1 text-xs text-white/70 hover:text-white hover:bg-white/20 transition-colors shrink-0 flex items-center gap-1.5"
+                  >
+                    <Copy className="size-3" /> Copy
+                  </button>
+                </div>
+
+                {/* Attend Meeting CTAs */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button
+                    onClick={joinCall}
+                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-900/40 hover:brightness-110 active:scale-95 transition-all"
+                  >
+                    <Video className="size-4" />
+                    {currentRoomUrl.includes("meet.google.com")
+                      ? "Join on Google Meet"
+                      : currentRoomUrl.includes("zoom.us")
+                      ? "Join on Zoom"
+                      : "Attend in Live Video Room"}
+                  </button>
+
+                  <a
+                    href={booking.video_room_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-xs font-semibold text-white/80 hover:bg-white/[0.08] hover:text-white transition-colors"
+                  >
+                    <ExternalLink className="size-3.5" /> Open in New Window
+                  </a>
+                </div>
+
+                {/* Send Invite Buttons (Gmail, WhatsApp, Email) */}
+                <div className="border-t border-white/10 pt-3">
+                  <p className="text-[11px] font-semibold text-white/60 mb-2 uppercase tracking-wider">
+                    Dispatch Meeting Link to Client:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={sendGmailInvite}
+                      className="flex items-center gap-1.5 rounded-xl bg-red-500/15 border border-red-500/30 px-3.5 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/25 transition-colors"
+                    >
+                      <Mail className="size-3.5 text-red-400" /> Send via Gmail
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={sendWhatsAppInvite}
+                      className="flex items-center gap-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 px-3.5 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/25 transition-colors"
+                    >
+                      <Share2 className="size-3.5 text-emerald-400" /> Send via WhatsApp
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={sendDefaultMail}
+                      className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                    >
+                      <Mail className="size-3.5" /> Default Email
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-white/60 leading-relaxed">
+                  Select a meeting provider to generate an instant link and send it directly to <strong className="text-white">{booking.email}</strong>:
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    onClick={() => generateRoom("google_meet")}
+                    disabled={roomBusy}
+                    className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                  >
+                    {roomBusy ? <Loader2 className="size-4 animate-spin" /> : <Video className="size-4 text-emerald-400" />}
+                    <span>Google Meet Link</span>
+                    <span className="text-[10px] text-emerald-400/60 font-normal">Instant Meet room</span>
+                  </button>
+
+                  <button
+                    onClick={() => generateRoom("zoom")}
+                    disabled={roomBusy}
+                    className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-3 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20 transition-all disabled:opacity-50"
+                  >
+                    {roomBusy ? <Loader2 className="size-4 animate-spin" /> : <Video className="size-4 text-cyan-400" />}
+                    <span>Zoom Meeting</span>
+                    <span className="text-[10px] text-cyan-400/60 font-normal">HD Zoom room</span>
+                  </button>
+
+                  <button
+                    onClick={() => generateRoom("connectxpert")}
+                    disabled={roomBusy}
+                    className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs font-semibold text-blue-300 hover:bg-blue-500/20 transition-all disabled:opacity-50"
+                  >
+                    {roomBusy ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4 text-blue-400" />}
+                    <span>In-Platform Room</span>
+                    <span className="text-[10px] text-blue-400/60 font-normal">Direct browser call</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* ── Calendar Integration Strip ── */}
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CalendarPlus className="size-4 text-blue-400" />
                 <span className="text-xs font-semibold text-white">Calendar Synchronization</span>
               </div>
-              <span className="text-[10px] text-white/40">1-Click Add</span>
+              <span className="text-[10px] text-white/40">Sync with Schedule</span>
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -238,91 +432,6 @@ function BookingModal({
                 <Calendar className="size-3.5" /> Add to Outlook
               </a>
             </div>
-          </div>
-
-          {/* ── Video Room & Live Zoom / Meet Integration ── */}
-          <div
-            className="rounded-2xl border border-blue-500/20 p-4 space-y-3"
-            style={{ background: "linear-gradient(135deg, rgba(30, 58, 138, 0.15) 0%, rgba(17, 24, 39, 0.5) 100%)" }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Video className="size-4 text-blue-400" />
-                <span className="text-xs font-bold text-white uppercase tracking-wider">Live Video Meeting</span>
-              </div>
-              {currentRoomUrl && (
-                <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
-                  Ready to Join
-                </span>
-              )}
-            </div>
-
-            {currentRoomUrl ? (
-              <div className="space-y-3">
-                <div className="rounded-xl border border-white/10 bg-black/40 p-2.5 flex items-center justify-between gap-2">
-                  <p className="text-xs font-mono text-blue-300 truncate">{booking.video_room_url}</p>
-                  <button
-                    onClick={() => navigator.clipboard.writeText(booking.video_room_url)}
-                    className="rounded-lg p-1.5 text-white/40 hover:text-white hover:bg-white/10 transition-colors shrink-0"
-                    title="Copy Meeting Link"
-                  >
-                    <Share2 className="size-3.5" />
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={joinCall}
-                    className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white shadow-[0_0_16px_rgba(37,99,235,0.5)] hover:bg-blue-500 transition-all"
-                  >
-                    <Video className="size-3.5" /> Join Live Video Room
-                  </button>
-                  <a
-                    href={booking.video_room_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold text-white/70 hover:bg-white/[0.08] hover:text-white transition-colors"
-                  >
-                    <ExternalLink className="size-3.5" /> Open in Browser
-                  </a>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-xs text-white/50 leading-relaxed">
-                  Generate an instant secure video conference room for this consultation session:
-                </p>
-
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => generateRoom("zoom")}
-                    disabled={roomBusy}
-                    className="flex items-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-2 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20 transition-colors disabled:opacity-50"
-                  >
-                    {roomBusy ? <Loader2 className="size-3.5 animate-spin" /> : <Video className="size-3.5" />}
-                    Create Zoom Link
-                  </button>
-
-                  <button
-                    onClick={() => generateRoom("google_meet")}
-                    disabled={roomBusy}
-                    className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
-                  >
-                    {roomBusy ? <Loader2 className="size-3.5 animate-spin" /> : <Video className="size-3.5" />}
-                    Create Google Meet
-                  </button>
-
-                  <button
-                    onClick={() => generateRoom("connectxpert")}
-                    disabled={roomBusy}
-                    className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-50"
-                  >
-                    {roomBusy ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
-                    ConnectXpert HD Room
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -357,6 +466,7 @@ function BookingModal({
               </button>
             )}
           </div>
+
 
           <a
             href={`mailto:${booking.email}`}

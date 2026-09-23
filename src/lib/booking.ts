@@ -183,27 +183,38 @@ export async function createBooking(payload: {
   preferred_date: string;
   preferred_time: string;
   timezone: string;
+  meeting_platform?: "google_meet" | "zoom" | "connectxpert";
   notes?: string | undefined;
 }): Promise<{ id: string; booking_reference: string; video_room_url: string }> {
   const booking_reference = `CX-${Date.now().toString(36).toUpperCase()}`;
   
-  // Create client-side fallback link
-  const fallbackRoomName = `cx-session-${booking_reference.toLowerCase()}`;
-  const fallbackUrl = `https://meet.jit.si/${fallbackRoomName}`;
+  let video_room_url = "";
+  let video_room_name = `CX-${booking_reference}`;
+
+  if (payload.meeting_platform === "google_meet") {
+    video_room_url = `https://meet.google.com/${Math.random().toString(36).substring(2, 5)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}`;
+  } else if (payload.meeting_platform === "zoom") {
+    video_room_url = `https://zoom.us/j/${Math.floor(1000000000 + Math.random() * 9000000000)}?pwd=CX${booking_reference}`;
+  } else {
+    // Default / WebRTC
+    video_room_name = `cx-session-${booking_reference.toLowerCase()}`;
+    video_room_url = `https://meet.jit.si/${video_room_name}`;
+  }
 
   const { data, error } = await supabase
     .from("demo_bookings")
     .insert({ 
       ...payload, 
       booking_reference, 
-      status: "pending",
-      video_room_url: fallbackUrl,
-      video_room_name: fallbackRoomName
+      status: "confirmed",
+      video_room_url,
+      video_room_name,
     })
     .select("id, booking_reference, video_room_url")
     .single();
     
   if (error) throw error;
+
   
   // Track analytics
   await supabase.from("analytics_events").insert({

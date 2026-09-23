@@ -200,6 +200,7 @@ interface Details {
   email: string;
   company: string;
   phone: string;
+  meeting_platform?: "google_meet" | "zoom" | "connectxpert";
   notes: string;
 }
 
@@ -232,7 +233,7 @@ function StepDetails({
     { key: "email",   label: "Email Address", type: "email" },
     { key: "company", label: "Company",       type: "text", optional: true },
     { key: "phone",   label: "Phone",         type: "tel",  optional: true },
-    { key: "notes",   label: "Notes",         optional: true, area: true },
+    { key: "notes",   label: "Notes / Agenda", optional: true, area: true },
   ];
 
   return (
@@ -270,6 +271,37 @@ function StepDetails({
             {errors[key] && <p className="text-xs text-red-400">{errors[key]}</p>}
           </div>
         ))}
+
+        {/* Meeting Platform Selector */}
+        <div className="flex flex-col gap-2 pt-2">
+          <label className="text-xs font-medium uppercase tracking-wider text-white/40">
+            Preferred Meeting Platform
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { id: "google_meet", label: "Google Meet", color: "text-emerald-400", border: "border-emerald-500/30", bg: "bg-emerald-500/10" },
+              { id: "zoom",        label: "Zoom Video",  color: "text-cyan-400",    border: "border-cyan-500/30",    bg: "bg-cyan-500/10" },
+              { id: "connectxpert",label: "In-Browser",  color: "text-blue-400",    border: "border-blue-500/30",    bg: "bg-blue-500/10" },
+            ].map((p) => {
+              const selected = (details.meeting_platform || "google_meet") === p.id;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => onChange({ ...details, meeting_platform: p.id as any })}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-1 rounded-xl border p-2.5 text-xs font-semibold transition-all",
+                    selected
+                      ? `${p.border} ${p.bg} ${p.color} ring-1 ring-white/20`
+                      : "border-white/10 bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+                  )}
+                >
+                  <span>{p.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <div className="mt-8 flex justify-end">
@@ -284,6 +316,7 @@ function StepDetails({
     </div>
   );
 }
+
 
 // ─── Step 5 — Review ──────────────────────────────────────────────────────────
 function StepReview({
@@ -513,13 +546,23 @@ function StepSuccess({
           href={gcUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-xl border border-blue-500/40 bg-blue-500/15 px-6 py-3 text-sm font-semibold text-blue-300 hover:bg-blue-500/25 transition-all shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)]"
+          className="flex items-center gap-2 rounded-xl border border-blue-500/40 bg-blue-500/15 px-5 py-3 text-sm font-semibold text-blue-300 hover:bg-blue-500/25 transition-all shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)]"
         >
           <CalendarPlus className="size-4 text-blue-400" /> Add to Google Calendar
         </a>
+
+        <a
+          href={`https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodeURIComponent(`Consultation Confirmed: ${service.name} [${bookingRef}]`)}&body=${encodeURIComponent(eventDetails)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/15 px-5 py-3 text-sm font-semibold text-red-300 hover:bg-red-500/25 transition-all"
+        >
+          <Mail className="size-4 text-red-400" /> Send to My Gmail
+        </a>
+
         <a
           href={`/book/ics?ref=${bookingRef}&date=${date}&time=${time}&service=${encodeURIComponent(service.name)}`}
-          className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white/70 hover:bg-white/10 transition-colors"
+          className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white/70 hover:bg-white/10 transition-colors"
         >
           <CalendarPlus className="size-4" /> Download .ics
         </a>
@@ -560,7 +603,7 @@ function BookPage() {
   );
   // Step 4
   const [details, setDetails] = useState<Details>({
-    name: "", email: "", company: "", phone: "", notes: "",
+    name: "", email: "", company: "", phone: "", notes: "", meeting_platform: "google_meet",
   });
   // Step 6
   const [bookingRef, setBookingRef]   = useState("");
@@ -568,8 +611,13 @@ function BookPage() {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "error">("idle");
 
   const topRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
+
+  function scrollToTop() {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  useEffect(() => {
+    scrollToTop();
   }, [step]);
 
   function goBack() {
@@ -591,6 +639,7 @@ function BookPage() {
         preferred_date:   date,
         preferred_time:   time,
         timezone,
+        meeting_platform: details.meeting_platform || "google_meet",
         notes:            details.notes.trim()   || undefined,
       });
       setBookingRef(result.booking_reference);
