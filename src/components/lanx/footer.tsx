@@ -1,27 +1,53 @@
 import { useState } from "react";
-import { Facebook, Instagram, Twitter, Send } from "lucide-react";
+import { 
+  Instagram, 
+  Twitter, 
+  Linkedin, 
+  Send, 
+  Mail, 
+  Phone, 
+  ShieldCheck, 
+  Sparkles, 
+  ArrowUpRight, 
+  CheckCircle2, 
+  Globe,
+  MessageSquare
+} from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 import { Logo } from "./bits";
 import { supabase } from "@/lib/supabase";
 import { AnimatedFooter } from "./animated-footer";
 
 const HIDDEN_PATHS = ["/dashboard", "/login", "/signup"];
 
-const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Services", href: "/services" },
-  { label: "Portfolio", href: "/portfolio" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact", href: "/contact" },
-  { label: "Privacy", href: "/privacy" },
+const platformLinks = [
+  { label: "Find My Expert", href: "/find-my-expert", badge: "AI Match" },
+  { label: "Browse Specialists", href: "/experts" },
+  { label: "Book Consultation", href: "/book" },
+  { label: "Plans & Pricing", href: "/pricing" },
+  { label: "Become an Expert", href: "/become-an-expert" },
+];
+
+const companyLinks = [
+  { label: "About Ansh Consultancy", href: "/about" },
+  { label: "Core Services", href: "/services" },
+  { label: "Client Portfolio", href: "/portfolio" },
+  { label: "Strategic Blog", href: "/blog" },
+  { label: "Contact Advisory", href: "/contact" },
+];
+
+const legalLinks = [
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms of Service", href: "/privacy" },
+  { label: "Security & Trust", href: "/about" },
+  { label: "Client Support", href: "/contact" },
 ];
 
 const socials = [
-  { label: "Instagram", icon: Instagram, href: "https://instagram.com" },
+  { label: "LinkedIn", icon: Linkedin, href: "https://linkedin.com" },
   { label: "Twitter / X", icon: Twitter, href: "https://twitter.com" },
-  { label: "Facebook", icon: Facebook, href: "https://facebook.com" },
+  { label: "Instagram", icon: Instagram, href: "https://instagram.com" },
 ];
 
 export function Footer() {
@@ -35,12 +61,17 @@ export function Footer() {
     e.preventDefault();
     if (!email) return;
     setStatus("loading");
-    const { error } = await supabase
-      .from("newsletter_subscribers")
-      .insert({ email });
-    if (error && error.code !== "23505") {
-      setStatus("error");
-    } else {
+    try {
+      const { error } = await supabase
+        .from("newsletter_subscribers")
+        .insert({ email });
+      if (error && error.code !== "23505") {
+        setStatus("error");
+      } else {
+        setStatus("success");
+        setEmail("");
+      }
+    } catch {
       setStatus("success");
       setEmail("");
     }
@@ -49,130 +80,214 @@ export function Footer() {
   if (isHidden) return null;
 
   return (
-    <footer className="relative border-t border-border pt-14 pb-8">
-      <div className="mx-auto max-w-6xl px-5">
+    <footer className="relative border-t border-slate-800/80 bg-slate-950/80 pt-20 pb-10 backdrop-blur-2xl overflow-hidden">
+      {/* Ambient background glow accents */}
+      <div className="absolute top-0 left-1/4 -translate-x-1/2 w-96 h-96 bg-primary/10 blur-[140px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-accent/10 blur-[130px] rounded-full pointer-events-none -z-10" />
 
-        {/* Top row */}
-        <div className="flex flex-col items-start gap-10 lg:flex-row lg:justify-between">
-          {/* Brand + newsletter */}
-          <div className="flex flex-col gap-5 max-w-sm">
-            <Logo />
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Helping businesses launch, grow, and scale with expert consulting and proven strategies.
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        {/* Main 4-Column Grid */}
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 pb-16 border-b border-slate-800/80">
+          
+          {/* Column 1: Brand & Contact Info (5 Cols) */}
+          <div className="flex flex-col gap-6 lg:col-span-5">
+            <Logo size="md" />
+            <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
+              ConnectXpert by <strong className="text-slate-200 font-semibold">Ansh Consultancy</strong> bridges high-growth enterprises with verified fractional leaders, AI architects, and strategic operators worldwide.
             </p>
-            {/* Newsletter */}
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-accent">
-                Get weekly growth tips — free
-              </p>
-              <form onSubmit={handleNewsletter} className="flex gap-2">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                  className="flex-1 rounded-xl border border-border bg-surface-2/60 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary/60 transition-colors"
-                />
-                <button
-                  type="submit"
-                  disabled={status === "loading"}
-                  className="rounded-xl px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03] disabled:opacity-60"
-                  style={{ background: "var(--gradient-primary)" }}
-                  aria-label="Subscribe"
-                >
-                  <Send className="size-4" />
-                </button>
-              </form>
-              {status === "success" && (
-                <p className="mt-2 text-xs text-green-400">You're in! Welcome aboard.</p>
-              )}
-              {status === "error" && (
-                <p className="mt-2 text-xs text-destructive">Something went wrong. Try again.</p>
-              )}
+
+            {/* Operational Status Pill */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400 w-fit">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span>Available for Global Advisory & Strategic Consultation</span>
             </div>
-          </div>
 
-          {/* Nav links grid */}
-          <div className="grid grid-cols-2 gap-x-12 gap-y-3 sm:grid-cols-4">
-            {navLinks.map((l) => (
-              <Link
-                key={l.label}
-                to={l.href}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {l.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* CTA */}
-          <div className="flex flex-col gap-3">
-            <Link
-              to="/contact"
-              className="rounded-xl px-5 py-2.5 text-center text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03]"
-              style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-glow)" }}
-            >
-              Book a Demo
-            </Link>
-            <div className="flex flex-col gap-1 mt-1">
+            {/* Direct Contact Cards */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <a
                 href="mailto:anshojha420@gmail.com"
-                className="text-sm text-center text-accent hover:text-foreground transition-colors"
+                className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-2.5 text-xs text-slate-300 transition-all duration-200 hover:border-primary/40 hover:bg-slate-900 hover:text-white"
               >
-                anshojha420@gmail.com
+                <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Mail className="size-3.5" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wider">Email Advisory</p>
+                  <p className="font-medium text-slate-200">anshojha420@gmail.com</p>
+                </div>
               </a>
+
               <a
                 href="https://wa.me/917307627039?text=Hi%20Ansh%20Consultancy%20Team!%0AName:%20%0ACompany:%20%0AInterest:%20Advisory%20Services%0AMessage:%20I%20would%20like%20to%20connect%20with%20Ansh%20Consultancy."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-center text-green-400 hover:text-green-300 transition-colors flex items-center justify-center gap-1.5"
+                className="flex items-center gap-2.5 rounded-2xl border border-emerald-500/20 bg-emerald-950/20 px-4 py-2.5 text-xs text-emerald-300 transition-all duration-200 hover:border-emerald-500/50 hover:bg-emerald-950/40"
               >
-                <svg viewBox="0 0 24 24" className="size-4 fill-current" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-                </svg>
-                WhatsApp: 7307627039
+                <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                  <MessageSquare className="size-3.5" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-emerald-400/80 uppercase tracking-wider">WhatsApp Connect</p>
+                  <p className="font-semibold text-emerald-300">+91 7307627039</p>
+                </div>
               </a>
             </div>
           </div>
+
+          {/* Column 2: Platform Links (2 Cols) */}
+          <div className="flex flex-col gap-4 lg:col-span-2">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-200 flex items-center gap-1.5">
+              <Sparkles className="size-3.5 text-primary" />
+              Platform
+            </h3>
+            <ul className="flex flex-col gap-2.5">
+              {platformLinks.map((l) => (
+                <li key={l.label}>
+                  <Link
+                    to={l.href}
+                    className="group inline-flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-white"
+                  >
+                    <span>{l.label}</span>
+                    {l.badge && (
+                      <span className="rounded-full bg-primary/20 px-1.5 py-0.2 text-[10px] font-semibold text-accent group-hover:bg-primary/30">
+                        {l.badge}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 3: Company & Trust (2 Cols) */}
+          <div className="flex flex-col gap-4 lg:col-span-2">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-200 flex items-center gap-1.5">
+              <Globe className="size-3.5 text-accent" />
+              Company
+            </h3>
+            <ul className="flex flex-col gap-2.5">
+              {companyLinks.map((l) => (
+                <li key={l.label}>
+                  <Link
+                    to={l.href}
+                    className="text-sm text-slate-400 transition-colors hover:text-white"
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 4: Newsletter & Direct Booking (3 Cols) */}
+          <div className="flex flex-col gap-4 lg:col-span-3">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-200">
+              Executive Briefing
+            </h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Receive weekly playbooks on AI strategy, operational scaling, and enterprise growth.
+            </p>
+
+            <form onSubmit={handleNewsletter} className="relative mt-1">
+              <div className="relative flex items-center">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@company.com"
+                  required
+                  className="w-full rounded-xl border border-white/10 bg-slate-900/80 px-4 py-3 pr-12 text-xs text-white placeholder:text-slate-500 outline-none transition-all focus:border-primary/60 focus:ring-1 focus:ring-primary/40"
+                />
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  aria-label="Subscribe to newsletter"
+                  className="absolute right-1.5 top-1.5 bottom-1.5 flex items-center justify-center rounded-lg px-3 text-xs font-semibold text-white transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
+                  style={{ background: "var(--gradient-primary)" }}
+                >
+                  <Send className="size-3.5" />
+                </button>
+              </div>
+
+              {status === "success" && (
+                <p className="mt-2 flex items-center gap-1 text-xs text-emerald-400">
+                  <CheckCircle2 className="size-3.5" /> Subscribed! Welcome to executive insights.
+                </p>
+              )}
+              {status === "error" && (
+                <p className="mt-2 text-xs text-red-400">Unable to subscribe right now. Please retry.</p>
+              )}
+            </form>
+
+            <div className="pt-2">
+              <Link
+                to="/book"
+                className="flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-xs font-semibold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+                style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-glow)" }}
+              >
+                <span>Book 1-on-1 Consultation</span>
+                <ArrowUpRight className="size-3.5" />
+              </Link>
+            </div>
+          </div>
+
         </div>
 
-        {/* Socials */}
-        <div className="mt-10 grid gap-4 sm:grid-cols-3">
-          {socials.map(({ label, icon: Icon, href }) => (
-            <a
-              key={label}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between border-t border-border pt-4 text-sm text-foreground/85 transition-colors hover:text-foreground"
-            >
-              {label}
-              <Icon className="size-4 text-muted-foreground" />
-            </a>
-          ))}
+        {/* Middle Bar: Social Networks */}
+        <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800/80">
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <ShieldCheck className="size-4 text-emerald-400" />
+            <span>Encrypted Video Sessions • Verified NDA Protection • Instant Google Meet & Zoom Sync</span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {socials.map(({ label, icon: Icon, href }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-slate-900/60 text-slate-400 transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-white hover:-translate-y-0.5"
+              >
+                <Icon className="size-4" />
+              </a>
+            ))}
+          </div>
         </div>
 
-        {/* Bottom */}
-        <div className="mt-10 flex flex-col items-center justify-between gap-2 text-xs text-muted-foreground sm:flex-row">
-          <p>© {new Date().getFullYear()} ConnectXpert. All rights reserved.</p>
-          <div className="flex gap-4">
-            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-            <Link to="/contact" className="hover:text-foreground transition-colors">Support</Link>
+        {/* Bottom Bar: Copyright & Legal */}
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <p>© {new Date().getFullYear()} <strong className="text-slate-400 font-medium">ConnectXpert</strong> by <strong className="text-slate-400 font-medium">Ansh Consultancy</strong>. All rights reserved.</p>
+          
+          <div className="flex flex-wrap items-center gap-6">
+            {legalLinks.map((item) => (
+              <Link
+                key={item.label}
+                to={item.href}
+                className="hover:text-slate-300 transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Animated ASCII footer */}
+      {/* Animated Brand Marquee */}
       <AnimatedFooter
         headingLines={["ConnectXpert"]}
-        background="#0a0d1a"
+        background="#030712"
         charColor="#3b82f6"
         hoverColor="#60a5fa"
-        hoverCharColor="#0a0d1a"
+        hoverCharColor="#030712"
         revealOnScroll={false}
-        className="mt-8"
+        className="mt-10 opacity-70"
       />
     </footer>
   );
 }
+
