@@ -15,12 +15,21 @@ function GoogleIcon() {
 }
 
 interface AuthModalProps {
-  open: boolean;
+  open?: boolean;
+  isOpen?: boolean;
   onClose: () => void;
   defaultTab?: "login" | "signup";
+  onSuccess?: () => void;
 }
 
-export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProps) {
+export function AuthModal({
+  open,
+  isOpen,
+  onClose,
+  defaultTab = "login",
+  onSuccess,
+}: AuthModalProps) {
+  const isVisible = Boolean(open ?? isOpen);
   const navigate = useNavigate();
   const [tab, setTab]           = useState<"login" | "signup">(defaultTab);
   const [authMode, setAuthMode] = useState<"password" | "otp">("password");
@@ -30,33 +39,35 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProp
   const [otpToken, setOtpToken] = useState("");
   const [otpSent, setOtpSent]   = useState(false);
   const [showPw, setShowPw]     = useState(false);
-  const [status, setStatus]     = useState<"idle" | "loading" | "google" | "otp-sending" | "success" | "error">("idle");
+  const [status, setStatus]     = useState<"idle" | "loading" | "google" | "otp-sending" | "error" | "info">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [infoMsg, setInfoMsg]   = useState("");
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setTab(defaultTab);
     setName(""); setEmail(""); setPassword(""); setOtpToken(""); setOtpSent(false);
     setStatus("idle"); setErrorMsg(""); setInfoMsg("");
-  }, [tab, authMode]);
+  }, [defaultTab, isVisible]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!isVisible) return;
     const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [open, onClose]);
+  }, [isVisible, onClose]);
 
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
+    document.body.style.overflow = isVisible ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
-  }, [open]);
+  }, [isVisible]);
 
   // Handle Google OAuth redirect back
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
+      if (event === "SIGNED_IN" && session?.user) {
         onClose();
+        if (onSuccess) onSuccess();
         navigate({ to: "/dashboard" });
       }
     });
@@ -66,9 +77,10 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProp
   async function handleGoogle() {
     setStatus("google");
     setErrorMsg("");
+    const redirectTo = getAuthRedirectUrl("/dashboard");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo },
     });
     if (error) { setStatus("error"); setErrorMsg(error.message); }
   }
@@ -95,11 +107,12 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProp
         return;
       }
       onClose();
+      if (onSuccess) onSuccess();
       navigate({ to: "/dashboard" });
     } else {
       if (!name.trim()) {
         setStatus("error");
-        setErrorMsg("Please enter your full name.");
+        setErrorMsg("Please enter your name.");
         return;
       }
       if (password.length < 8) {
@@ -119,10 +132,12 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProp
       }
       if (data?.session) {
         onClose();
+        if (onSuccess) onSuccess();
         navigate({ to: "/dashboard" });
         return;
       }
-      setStatus("success");
+      setInfoMsg("Account created! Check your email to confirm your account.");
+      setStatus("info");
     }
   }
 
@@ -130,7 +145,7 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProp
     e.preventDefault();
     if (!email.trim()) {
       setStatus("error");
-      setErrorMsg("Please enter your email to receive an OTP code.");
+      setErrorMsg("Please enter your email.");
       return;
     }
     if (tab === "signup" && !name.trim()) {
@@ -143,11 +158,13 @@ export function AuthModal({ open, onClose, defaultTab = "login" }: AuthModalProp
     setErrorMsg("");
     setInfoMsg("");
 
+    const redirectTo = getAuthRedirectUrl("/dashboard");
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        data: tab === "signup" ? { full_name: name.trim() } : undefined,
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        shouldCreateUser: true,
+        data: name.trim() ? { full_name: name.trim() } : undefined,
+        emailRedirectTo: redirectTo,
       },
     });
 

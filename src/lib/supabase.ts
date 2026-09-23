@@ -22,6 +22,20 @@ if (typeof window !== "undefined") {
   globalForSupabase.supabaseClient = supabase;
 }
 
+/**
+ * Returns the exact origin for OAuth & email redirects.
+ * Ensures mobile devices, remote laptops, and production domains
+ * redirect to the current domain instead of localhost.
+ */
+export function getAuthRedirectUrl(path: string = "/dashboard"): string {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    const origin = window.location.origin.replace(/\/$/, "");
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
+    return `${origin}${cleanPath}`;
+  }
+  return path;
+}
+
 
 // ── Existing types ─────────────────────────────────────────────
 

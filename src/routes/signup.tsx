@@ -20,7 +20,7 @@ import {
   Globe
 } from "lucide-react";
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { supabase } from "@/lib/supabase";
+import { supabase, getAuthRedirectUrl } from "@/lib/supabase";
 import anshPhoto from "@/assets/ansh-ojha.jpg";
 
 function GoogleIcon() {
@@ -94,9 +94,10 @@ function SignupPage() {
   async function handleGoogleSignIn() {
     setStatus("google");
     setErrorMsg("");
+    const redirectTo = getAuthRedirectUrl("/dashboard");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo },
     });
     if (error) {
       setStatus("error");
@@ -168,11 +169,12 @@ function SignupPage() {
     setErrorMsg("");
     setInfoMsg("");
 
+    const redirectTo = getAuthRedirectUrl("/dashboard");
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
         data: { full_name: name.trim() },
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: redirectTo,
       },
     });
 
