@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Nav } from "@/components/lanx/nav";
 import { Footer } from "@/components/lanx/footer";
 import { SectionHeading, Avatar } from "@/components/lanx/bits";
+import anshPhoto from "@/assets/ansh-ojha.jpg";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -28,6 +29,7 @@ const team = [
     role: "Founder & Managing Principal",
     track: "Strategic Advisory & Product Architecture",
     bio: "Pioneering operator-led business advisory. Leads executive consulting, digital roadmap execution, and high-impact scaling sessions.",
+    image: anshPhoto,
     avatarBg: "from-blue-600 to-indigo-600",
     initials: "AO",
     linkedin: "https://linkedin.com",
@@ -39,6 +41,7 @@ const team = [
     role: "Co-Founder & Head of Technology",
     track: "Cloud Infrastructure & Scalable Systems",
     bio: "Engineering leader overseeing distributed cloud systems, modern enterprise migration, technical audits, and engineering roadmaps.",
+    image: "",
     avatarBg: "from-emerald-600 to-teal-600",
     initials: "MP",
     linkedin: "https://linkedin.com",
@@ -50,6 +53,7 @@ const team = [
     role: "Co-Founder & Head of Growth & Operations",
     track: "Revenue Operations & Market Expansion",
     bio: "Growth strategist specializing in customer acquisition systems, sales pipeline architecture, and high-velocity business scaling.",
+    image: "",
     avatarBg: "from-purple-600 to-pink-600",
     initials: "DG",
     linkedin: "https://linkedin.com",
@@ -61,6 +65,7 @@ const team = [
     role: "Partner · Strategy & Market Entry",
     track: "GTM Strategy & Enterprise OKRs",
     bio: "10+ years guiding scaling businesses through GTM resets, unit economics optimization, and multi-market entry initiatives.",
+    image: "",
     avatarBg: "from-amber-600 to-orange-600",
     initials: "SC",
     linkedin: "https://linkedin.com",
@@ -146,9 +151,17 @@ function AboutPage() {
                 >
                   <div>
                     <div className="flex items-start justify-between mb-4">
-                      <div className={`size-14 rounded-2xl bg-gradient-to-tr ${member.avatarBg} flex items-center justify-center text-white font-bold text-lg shadow-md`}>
-                        {member.initials}
-                      </div>
+                      {member.image ? (
+                        <img
+                          src={member.image}
+                          alt={member.name}
+                          className="size-16 rounded-2xl object-cover object-top border-2 border-emerald-500/30 shadow-md"
+                        />
+                      ) : (
+                        <div className={`size-14 rounded-2xl bg-gradient-to-tr ${member.avatarBg} flex items-center justify-center text-white font-bold text-lg shadow-md`}>
+                          {member.initials}
+                        </div>
+                      )}
                       {member.founder && (
                         <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
                           Founder

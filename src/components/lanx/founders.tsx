@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Linkedin, Mail, Sparkles, Award, ShieldCheck, ArrowUpRight } from "lucide-react";
 import { SectionBadge, Avatar } from "./bits";
+import anshPhoto from "@/assets/ansh-ojha.jpg";
 
 const FOUNDERS = [
   {
@@ -8,6 +9,7 @@ const FOUNDERS = [
     role: "Founder & Managing Principal",
     track: "Strategic Advisory, Enterprise Cloud & Product Systems",
     bio: "Pioneering operator-led business advisory. Leads executive consulting, digital roadmap execution, and high-impact advisory for high-growth enterprises.",
+    image: anshPhoto,
     avatarBg: "from-blue-600 to-indigo-600",
     initials: "AO",
     linkedin: "https://linkedin.com",
@@ -19,6 +21,7 @@ const FOUNDERS = [
     role: "Co-Founder & Head of Technology",
     track: "Full-Stack Engineering & Scalable Systems",
     bio: "Enterprise engineering leader orchestrating modern cloud infrastructure, distributed microservices, technical audits, and high-performance developer teams.",
+    image: "",
     avatarBg: "from-emerald-600 to-teal-600",
     initials: "MP",
     linkedin: "https://linkedin.com",
@@ -30,6 +33,7 @@ const FOUNDERS = [
     role: "Co-Founder & Head of Growth & Operations",
     track: "Revenue Operations & Market Expansion",
     bio: "Growth architect specializing in inbound pipeline generation, customer acquisition models, enterprise sales operations, and international expansion.",
+    image: "",
     avatarBg: "from-purple-600 to-pink-600",
     initials: "DG",
     linkedin: "https://linkedin.com",
@@ -73,9 +77,17 @@ export function Founders() {
               <div>
                 <div className="flex items-start justify-between gap-3 mb-5">
                   <div className="relative">
-                    <div className={`size-14 rounded-2xl bg-gradient-to-tr ${member.avatarBg} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
-                      {member.initials}
-                    </div>
+                    {member.image ? (
+                      <img
+                        src={member.image}
+                        alt={member.name}
+                        className="size-16 rounded-2xl object-cover object-top border-2 border-emerald-500/30 shadow-lg"
+                      />
+                    ) : (
+                      <div className={`size-14 rounded-2xl bg-gradient-to-tr ${member.avatarBg} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
+                        {member.initials}
+                      </div>
+                    )}
                     <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-[#0d121f]">
                       <ShieldCheck className="size-3 text-white" />
                     </span>

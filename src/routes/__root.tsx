@@ -36,33 +36,45 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+  console.error("Root Error caught:", error);
   const router = useRouter();
+
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
+  function handleReset() {
+    try {
+      router.invalidate();
+    } catch {}
+    reset();
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn&apos;t load
+    <div className="flex min-h-screen items-center justify-center bg-[#070b14] px-4 text-slate-100">
+      <div className="max-w-md w-full text-center rounded-3xl border border-white/10 bg-[#0d1424] p-8 shadow-2xl backdrop-blur-xl">
+        <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+          <span className="text-2xl">⚡</span>
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-white mb-2">
+          Page encountered an issue
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+        <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+          {error?.message || "An unexpected rendering issue occurred. Click reload or return to the main dashboard."}
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            type="button"
+            onClick={handleReset}
+            className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-950/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
-            Try again
+            Reload Page
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="w-full sm:w-auto rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-semibold text-slate-200 hover:bg-white/10 hover:text-white transition-all"
           >
-            Go home
+            Go Home
           </a>
         </div>
       </div>
