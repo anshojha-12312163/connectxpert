@@ -11,13 +11,11 @@ import {
   ShieldCheck,
   Calendar,
   MessageCircle,
-  Sliders,
-  ZoomIn,
   ArrowUpRight,
   Clock,
   Briefcase
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Nav } from "@/components/lanx/nav";
 import { Footer } from "@/components/lanx/footer";
 import { supabase } from "@/lib/supabase";
@@ -51,40 +49,12 @@ const EMPTY: FormState = {
   message: "",
 };
 
-type ImageSize = "compact" | "medium" | "large" | "spotlight";
-
 function ContactPage() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [errors, setErrors] = useState<Partial<FormState>>({});
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [newsletter, setNewsletter] = useState("");
   const [nlStatus, setNlStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-
-  // Interactive Size Adjuster state for Ansh Ojha's picture
-  const [photoSize, setPhotoSize] = useState<ImageSize>("medium");
-
-  const sizeClassMap: Record<ImageSize, { container: string; img: string; label: string }> = {
-    compact: {
-      container: "max-w-[120px] sm:max-w-[140px]",
-      img: "h-36 sm:h-44 w-full rounded-2xl",
-      label: "Compact (S)",
-    },
-    medium: {
-      container: "max-w-[180px] sm:max-w-[210px]",
-      img: "h-56 sm:h-64 w-full rounded-2xl",
-      label: "Standard (M)",
-    },
-    large: {
-      container: "max-w-[260px] sm:max-w-[300px]",
-      img: "h-72 sm:h-84 w-full rounded-3xl",
-      label: "Large (L)",
-    },
-    spotlight: {
-      container: "w-full max-w-full sm:max-w-md",
-      img: "h-80 sm:h-96 w-full rounded-3xl",
-      label: "Spotlight (XL)",
-    },
-  };
 
   function validate(): boolean {
     const e: Partial<FormState> = {};
@@ -205,7 +175,7 @@ function ContactPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mb-14 relative overflow-hidden rounded-3xl border border-emerald-500/25 bg-gradient-to-br from-[#0c1322] via-[#0e172a] to-[#071324] p-6 sm:p-8 lg:p-10 shadow-2xl shadow-emerald-950/20 backdrop-blur-xl"
           >
-            {/* Top Bar with Status & Size Controls */}
+            {/* Top Bar with Status */}
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6 mb-8">
               <div className="flex items-center gap-2.5">
                 <span className="relative flex size-3.5">
@@ -217,58 +187,33 @@ function ContactPage() {
                 </span>
               </div>
 
-              {/* Photo Size Adjuster Controls */}
-              <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-1.5 backdrop-blur-md">
-                <span className="flex items-center gap-1 text-[11px] font-medium text-slate-400 pl-2 pr-1">
-                  <Sliders className="size-3.5 text-emerald-400" /> Size:
-                </span>
-                {(["compact", "medium", "large", "spotlight"] as ImageSize[]).map((sz) => (
-                  <button
-                    key={sz}
-                    type="button"
-                    onClick={() => setPhotoSize(sz)}
-                    className={`rounded-xl px-2.5 py-1 text-xs font-semibold transition-all duration-200 ${
-                      photoSize === sz
-                        ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-950"
-                        : "text-slate-300 hover:text-white hover:bg-white/10"
-                    }`}
-                  >
-                    {sz === "compact" ? "S" : sz === "medium" ? "M" : sz === "large" ? "L" : "XL"}
-                  </button>
-                ))}
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-slate-300 backdrop-blur-md">
+                <ShieldCheck className="size-4 text-emerald-400" />
+                <span>Verified Managing Principal</span>
               </div>
             </div>
 
             {/* Founder Profile Layout */}
             <div className="grid gap-8 lg:grid-cols-[auto_1fr] items-center">
               
-              {/* Photo with dynamic size adjustment */}
+              {/* Permanent XL Spotlight Photo */}
               <div className="flex flex-col items-center sm:items-start">
-                <motion.div
-                  layout
-                  className={`relative ${sizeClassMap[photoSize].container} transition-all duration-300`}
-                >
-                  <div className="relative group overflow-hidden rounded-2xl border-2 border-emerald-500/40 shadow-xl shadow-black/60">
+                <div className="relative w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[340px]">
+                  <div className="relative group overflow-hidden rounded-3xl border-2 border-emerald-500/40 shadow-2xl shadow-black/80">
                     <img
                       src={anshPhoto}
                       alt="Ansh Ojha - Founder & Managing Principal"
-                      className={`${sizeClassMap[photoSize].img} object-cover object-top transition-transform duration-500 group-hover:scale-105`}
+                      className="h-80 sm:h-96 w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
                     
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/80 border border-emerald-500/50 px-2 py-0.5 text-[10px] font-semibold text-emerald-300 backdrop-blur-md">
-                        <ShieldCheck className="size-3 text-emerald-400" /> Verified Principal
+                    <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between text-white">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950/85 border border-emerald-500/50 px-3 py-1 text-xs font-semibold text-emerald-300 backdrop-blur-md">
+                        <ShieldCheck className="size-3.5 text-emerald-400" /> Verified Principal
                       </span>
                     </div>
                   </div>
-
-                  {/* Caption under picture */}
-                  <div className="mt-2.5 text-center text-[11px] text-slate-400 flex items-center justify-center gap-1">
-                    <ZoomIn className="size-3 text-emerald-400" />
-                    <span>Mode: <strong className="text-slate-200">{sizeClassMap[photoSize].label}</strong></span>
-                  </div>
-                </motion.div>
+                </div>
               </div>
 
               {/* Founder Details & Fast Connect Actions */}
