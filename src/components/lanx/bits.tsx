@@ -65,33 +65,36 @@ const avatarPalette = [
 ];
 
 export function Avatar({
-  name,
+  name = "ConnectXpert",
   size = 36,
   className,
   src,
 }: {
-  name: string;
+  name?: string | undefined;
   size?: number | undefined;
   className?: string | undefined;
   src?: string | undefined;
 }) {
+  const safeName = (name || "ConnectXpert").trim();
   if (src) {
     return (
       <img
         src={src}
-        alt={name}
+        alt={safeName}
         className={cn("inline-flex shrink-0 rounded-full object-cover", className)}
         style={{ width: size, height: size }}
       />
     );
   }
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-  const idx = name.charCodeAt(0) % avatarPalette.length;
+  const initials = (
+    safeName
+      .split(" ")
+      .filter(Boolean)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("") || "CX"
+  ).toUpperCase();
+  const idx = (safeName.charCodeAt(0) || 0) % avatarPalette.length;
   return (
     <span
       className={cn(
