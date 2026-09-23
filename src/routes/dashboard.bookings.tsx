@@ -26,6 +26,7 @@ import {
   Phone,
   ShieldCheck,
   Share2,
+  Copy,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
