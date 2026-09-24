@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2, Eye, EyeOff, X, KeyRound, Mail, CheckCircle2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabase, getAuthRedirectUrl } from "@/lib/supabase";
 
 function GoogleIcon() {
   return (
